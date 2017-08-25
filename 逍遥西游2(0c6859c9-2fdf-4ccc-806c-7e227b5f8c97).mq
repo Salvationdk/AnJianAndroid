@@ -1,0 +1,288 @@
+
+SetRowsNumber(0)
+//注意：每次制作完字库后，需要自行把制作的字库文件添加到脚本“附件”中
+TracePrint SetDictEx(0, "Attachment:mq_soft.txt")
+TracePrint UseDict(0)
+//以上两句脚本只需要调用一次
+
+
+Dim intX,intY
+
+
+///////////////////////////调试区域
+
+
+
+Do
+
+
+''查找感叹号，表示对话支线内容
+FindMultiColor 89,354,145,531,"EEFEB2-101010","-2|11|FEC643-101010,3|13|DB9020-101010,11|21|415864-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX,intY
+End If
+
+
+FindStr(1029,200,1110,393,"支线1","B7E201-101010|91B30D-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	ShowMessage "支线1"
+End If
+
+FindStr(1029,200,1110,393,"支线2","84A706-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	ShowMessage "支线2"
+End If
+
+//FindStr(1029,200,1110,393,"支线3","A6CB14-101010",0.8,intX,intY)
+//If intX > -1 And intY > -1 Then
+//	Tap intX,intY
+//	ShowMessage "支线3"
+//End If
+
+FindStr(1029,200,1110,393,"支线4","B7E202-101010|9EC715-101010|87AF28-101010|89AD14-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX,intY
+	ShowMessage "支线4"
+End If
+
+FindStr(1056,220,1074,235,"支线5","B7E202-101010|9EC715-101010|87AF28-101010|89AD14-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	ShowMessage "支线5"
+End If
+
+
+//FindStr(1029,200,1110,393,"支线高亮1","ADD80D-101010|96AF20-101010",0.8,intX,intY)
+//If intX > -1 And intY > -1 Then
+//	Tap intX, intY
+//	ShowMessage "支线高亮1"
+//End If
+
+FindStr(1029,200,1110,393,"支线高亮2","ACD80C-101010|88A50F-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX,intY
+	ShowMessage "支线高亮2"
+End If
+
+FindStr(1029,200,1110,393,"支线高亮3","9BC60F-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX,intY
+	ShowMessage "支线高亮3"
+End If
+
+FindStr(1029,200,1110,393,"支线高亮4","B7E202-101010|9EC715-101010|87AF28-101010|89AD14-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX,intY
+	ShowMessage "支线高亮4"
+End If
+
+
+
+'点击叉叉快速跳过对话
+FindMultiColor 1217,25,1246,57,"53ABE0-101010","-9|-8|A6DFF6-101010,5|8|3188D4-101010,0|13|031007-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+
+
+'战斗多等待一下
+FindMultiColor 585,11,613,40,"94E4FD-101010","0|3|6CCAF9-101010,2|3|11466C-101010,5|5|60C3FC-101010,8|5|025A90-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Delay 3000
+End If
+
+
+Delay 1000
+
+Loop
+
+//////////////////调试区域
+
+
+
+
+
+
+
+
+
+
+////////根据下拉框的选择来执行对应的动作
+Dim xlk1
+xlk1 = ReadUIConfig("下拉框1")
+If xlk1 = 0 Then 
+	Goto zgstart
+ElseIf xlk1 = 1 Then
+	Goto zxstart
+ElseIf xlk1 = 2 Then
+	Goto smstart
+ElseIf xlk1 = 3 Then
+	Goto ZhiXian	
+End If
+
+
+///////////////////////////////////抓鬼开始
+Rem zgstart
+Do 
+
+'抓鬼
+FindMultiColor 100,375,162,437,"F2FEC0-101010","3|9|DF9B23-101010,15|11|475E69-101010,40|13|F7F8F9-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	Delay 1000
+End If
+
+'''按确定按钮
+FindPic 685,474,783,519,"Attachment:确定.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+    //	TracePrint intX
+    //	TracePrint intY
+    Tap intX, intY
+    Delay 1000
+End If
+
+FindPic 597,353,622,389,"Attachment:饱食.png","000000",0,0.8,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+
+'战斗多等待一下
+FindMultiColor 585,11,613,40,"94E4FD-101010","0|3|6CCAF9-101010,2|3|11466C-101010,5|5|60C3FC-101010,8|5|025A90-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Delay 2000
+End If
+
+Delay 1000
+Loop
+
+
+/////////////////////////////////主线
+Rem zxstart
+
+Do
+
+
+'查找主线的字样
+FindStr(1029,200,1110,393,"主线","97BC14-101010|AAD30C-101010",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	Delay 1000
+End If
+
+'主线完成时高亮显示
+FindStr(1029,200,1110,393,"主线高亮","89A904-151515|A9D005-202020",0.8,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	Delay 1000
+End If
+
+'点击叉叉快速跳过对话
+FindMultiColor 1217,25,1246,57,"53ABE0-101010","-9|-8|A6DFF6-101010,5|8|3188D4-101010,0|13|031007-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+
+'''''进入战斗
+'FindMultiColor 145,435,172,457,"FAFBFB-101010","2|3|49606B-101010,5|4|F4F5F6-101010,8|10|455C68-101010",0,0.9,intX,intY
+'If intX > -1 And intY > -1 Then
+'	Tap intX, intY
+'	Delay 10000
+'End If
+
+
+'战斗多等待一下
+FindMultiColor 585,11,613,40,"94E4FD-101010","0|3|6CCAF9-101010,2|3|11466C-101010,5|5|60C3FC-101010,8|5|025A90-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Delay 3000
+End If
+
+
+Delay 1000
+
+Loop
+
+
+////////////////////////////////////师门
+Rem smstart
+Do
+
+
+'先找到师门2个字
+FindStr(1029,200,1110,393,"师门","A9D211-151515|8EB210-101010",0.7,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	Delay 3500
+End If	
+
+'先找到师门高亮2个字
+FindStr(1029,200,1110,393,"师门高亮","98BF11-151515|A8D50D-101010",0.7,intX,intY)
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+
+'''按确定按钮
+FindPic 685,474,783,519,"Attachment:确定.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+    Tap intX, intY
+    Delay 1000
+End If
+
+'''''点击购买按键
+FindMultiColor 656,473,679,494,"9ED0FE-101010","5|3|1E4A82-101010,14|5|4C8FBD-101010,43|13|162734-101010,60|16|4989BA-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	Delay 500
+End If
+
+'''''购物后按XX
+FindMultiColor 990,93,1019,122,"4DA1D7-101010","-7|-8|7FCDE8-101010,9|-1|4A7413-101010,-8|6|3687CD-101010,0|10|40610E-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+
+
+''''捕捉宠物
+FindMultiColor 982,529,1009,557,"101C25-101010","3|3|4A8BBB-101010,9|0|101C25-101010,6|8|264761-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	Delay 30000
+End If
+
+''递交宠物
+FindMultiColor 320,590,345,619,"162836-101010","2|0|4A8BBB-101010,6|2|1D3446-101010,4|4|4888B9-101010,-1|6|0E1820-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+
+
+'点击叉叉快速跳过对话
+FindMultiColor 1217,25,1246,57,"53ABE0-101010","-9|-8|A6DFF6-101010,5|8|3188D4-101010,0|13|031007-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY	
+End If
+
+
+'战斗多等待一下
+FindMultiColor 585,11,613,40,"94E4FD-101010","0|3|6CCAF9-101010,2|3|11466C-101010,5|5|60C3FC-101010,8|5|025A90-101010",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Delay 2000
+End If
+
+
+Delay 1000	
+Loop
+
+
+
+
+
+Rem ZhiXian
+Do 
+
+
+
+
+
+Loop 
