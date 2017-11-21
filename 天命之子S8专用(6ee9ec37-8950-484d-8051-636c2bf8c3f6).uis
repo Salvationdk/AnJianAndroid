@@ -1,8 +1,0 @@
-Function fdc
-    UIP.SetAttribute "多选框_AutoSR_En", {"选中":false}
-End Function
-
-
-Function fsr
-    UIP.SetAttribute "多选框_Raid", {"选中":false}
-End Function
