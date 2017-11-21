@@ -1,0 +1,114 @@
+
+SetRowsNumber(0)
+//注意：每次制作完字库后，需要自行把制作的字库文件添加到脚本“附件”中
+TracePrint SetDictEx(0, "Attachment:mq_soft.txt")
+TracePrint UseDict(0)
+//以上两句脚本只需要调用一次
+
+
+Dim intX,intY
+Dim TotalNum = 0
+Dim NumSet = 0
+Dim PhaseSelect = 0
+
+
+
+///////////////////////////调试区域
+//////////////////调试区域
+
+
+
+Dim srk1
+srk1 = ReadUIConfig("输入框1")
+
+////////根据下拉框的选择来执行对应的动作
+Dim xlk1
+xlk1 = ReadUIConfig("下拉框1")
+If xlk1 = 0 Then 
+	NumSet = cint(srk1)
+	ShowMessage "共战斗"&NumSet&"次"
+	Goto zgstart
+ElseIf xlk1 = 1 Then
+	Goto QueDing
+	
+End If
+
+///////////////////////////////////抓鬼开始
+Rem zgstart
+Do 
+
+////主页面选择出击
+FindPic 663,146,726,217,"Attachment:出击按键.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	PhaseSelect = 1
+End If	
+
+FindPic 258,427,306,479,"Attachment:出征.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	tap intX,intY
+End If
+
+//发现有2-3关卡的字样，点击一下2-3关，然后再点击一下出击
+FindPic 478,472,504,516,"Attachment:图2-3的字.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap 430, 392
+	Delay 500
+	Tap 748, 88
+	Delay 500
+End If
+//选择1号队伍
+FindPic 482,393,511,417,"Attachment:1号队伍.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	tap intX,intY
+End If
+
+//进图后，有进击按键就点进击，同时2-3的图判断进攻条件
+FindPic 867,58,901,93,"Attachment:图内进击按键.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	Delay 200
+	//进攻A点
+	FindPic 741,414,773,446,"Attachment:2-3A点进攻条件.png","000000",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			tap intX,intY
+		End If
+End If
+
+FindPic 128,403,153,431,"Attachment:青龙阵型.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+	
+	//不停的点击屏幕，让战斗结束时候的画面最快速度结束，直到看到外面界面的商城按钮，表示已经跳出战斗了
+	Rem RepeatTap
+	Tap 833, 61
+	
+	//看见商城按键
+	FindPic 885,31,905,60,"Attachment:商城.png","000000",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then 
+			TotalNum = TotalNum + 1
+			//ShowMessage "已经战斗 TotalNum "
+			If TotalNum = NumSet Then 
+				ShowMessage "到达设定的战斗次数，结束脚本"
+				EndScript 
+			End If
+			Goto skipbattle
+		End If
+	Delay 100
+	Goto RepeatTap
+End If
+
+Rem skipbattle
+
+Delay 1000
+Loop
+
+////////////////等待确定按键
+Rem QueDing 
+Do
+	FindPic 522,322,569,372,"Attachment:确定按键.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		tap intX,intY
+	End If
+	Delay 50
+Loop

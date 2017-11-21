@@ -1,0 +1,45 @@
+
+
+
+Dim intX
+Dim intY
+Dim xlk1
+xlk1 = ReadUIConfig("下拉框1")
+
+
+If xlk1 = 0 Then 
+	Goto NeiZheng
+End If
+
+
+
+Rem NeiZheng	///内政
+/////按XX
+//FindPic 1235,25,1261,49,"Attachment:右上角X.png","000000",0,0.9,intX,intY
+//If intX > -1 And intY > -1 Then
+//	Tap 1250, 37
+//End If
+
+If CmpColorEx("1250|38|1541DC-010101,1258|31|0F76F2-010101,1242|30|1B52F0-010101",0.9) = 1 Then
+	Tap 1250, 37
+End If
+
+//////购物
+FindPic 926,608,953,634,"Attachment:购物.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+//////上交
+FindPic 994,623,1018,648,"Attachment:上交.png","000000",0,0.9,intX,intY
+If intX > -1 And intY > -1 Then
+	Tap intX, intY
+End If
+
+
+//////征税
+
+
+
+
+Delay 1000
+Goto NeiZheng

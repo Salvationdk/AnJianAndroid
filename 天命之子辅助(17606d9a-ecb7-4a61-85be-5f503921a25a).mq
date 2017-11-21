@@ -1,0 +1,1402 @@
+SetRowsNumber(0)
+//注意：每次制作完字库后，需要自行把制作的字库文件添加到脚本“附件”中
+SetDictEx(0, "Attachment:mq_soft.txt")
+SetDictEx(1, "Attachment:level.txt")		//1080p
+SetDictEx(2, "Attachment:level720.txt")		//720p
+//以上两句脚本只需要调用一次
+
+'''Y坐标的偏移，主要是因为三星S8上下有黑边，所以先做一个预留
+Dim Yoffset = 0
+Dim CvtStr,CvtStr2	''转换之后的字符串
+
+Dim intX,intY
+
+Dim dxk1,dxk2,dxk3,dxk4,dxk5
+
+Dim Name
+
+''''如果是截图模式
+Dim dxk_screenshot = ReadUIConfig("多选框_screenshot")
+If dxk_screenshot = True Then 
+	Name = Time()
+	SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
+	ShowMessage "截图已保存"
+	Delay 2000
+	EndScript 
+End If
+
+
+
+
+'TracePrint SmartOcr(128,170,176,207,"00C4FF-101010")
+
+'	EndScript
+
+
+
+
+
+
+
+
+
+
+
+'这里是DS的选择
+dxk1 = ReadUIConfig("多选框1")
+dxk2 = ReadUIConfig("多选框2")
+dxk3 = ReadUIConfig("多选框3")
+dxk4 = ReadUIConfig("多选框4")
+dxk5 = ReadUIConfig("多选框5")
+
+'这里是FEVER的选择
+Dim dxk_f1 = ReadUIConfig ("多选框_f1")
+Dim dxk_f2 = ReadUIConfig ("多选框_f2")
+Dim dxk_f3 = ReadUIConfig ("多选框_f3")
+Dim dxk_f4 = ReadUIConfig ("多选框_f4")
+Dim dxk_f5 = ReadUIConfig ("多选框_f5")
+
+
+
+'这里是Raid队伍的选择
+Dim BossHuoTeam = ReadUIConfig ("下拉框_Team_Huo") + 1
+Dim BossShuiTeam = ReadUIConfig ("下拉框_Team_Shui") + 1
+Dim BossMuTeam = ReadUIConfig ("下拉框_Team_Mu") + 1
+Dim BossGuangTeam = ReadUIConfig ("下拉框_Team_Guang") + 1
+Dim BossAnTeam = ReadUIConfig ("下拉框_Team_An") + 1
+
+
+Dim SRBossTeam = ReadUIConfig ("下拉框_SR_Team") + 1
+
+
+If Dir.Exist("/sdcard/DestinyChild/") = 0 Then 
+	ShowMessage "目录不存在"
+	Delay 500
+	If Dir.Create("/sdcard/DestinyChild/") = True Then 
+		ShowMessage "目录创建成功！！"
+	Else 
+		ShowMessage "目录创建失败！！"
+	End If
+	Delay 500
+End If
+
+
+
+Delay 1000
+
+
+
+
+/***********分辨率设置***********/
+Dim 屏幕DPI
+屏幕DPI=Device.GetDPI()
+'Showmessage "DPI是"&屏幕DPI
+'Delay 500
+
+
+Dim screenX
+Dim screenY
+screenX = GetScreenX()
+screenY = GetScreenY()
+
+
+Dim fbl = 0
+If screenX = 1080 And screenY = 1920 Then 
+	fbl = 1
+	UseDict(1)
+ElseIf screenX = 720 And screenY = 1280 Then
+	fbl = 2
+	UseDict(2)
+	//////脚本调试分辨率是1080*1920
+	SetScreenScale 1080, 1920, 1
+ElseIf screenX = 1080 And screenY = 2220 Then 
+	fbl = 1
+	'''鱼王S8的屏幕上面的黑边是138，下面是162。下面的黑边可以无视
+	Yoffset = 138
+	UseDict(1)
+Else 
+	ShowMessage "屏幕分辨率设置错误！" & Chr(10) & "不能运行脚本！" & Chr(10) & "请查看相关说明或群里请教大佬"	
+	Delay 2000
+	EndScript 
+End If
+
+
+ShowMessage "屏幕分辨率" & screenX & "*" & screenY & Chr(10) & "分辨率通过验证，开始脚本"
+TracePrint "屏幕分辨率" & screenX & "*" & screenY
+Delay 1000
+/***********分辨率设置***********/
+
+
+
+
+
+
+
+
+
+/**********脚本调试区**********/
+
+'TeamSelect 1
+
+'TracePrint StrOffset("100|150|574E45-101010,200|250|00E1FF-101010", 10, 20)
+
+'TracePrint SmartOcr(283,1080,331,1108,"FFFFFF-101010")
+
+'	EndScript
+/**********脚本调试区**********/
+
+
+
+
+
+
+
+
+
+
+
+
+'''FEVER延时
+Dim srk1
+Dim MouseDelay
+srk1 = ReadUIConfig("输入框1")
+MouseDelay = CInt (srk1)
+'ShowMessage "Fever100%延迟" & MouseDelay & "毫秒！"
+'Delay 500
+
+'''DS延迟
+Dim srk2
+Dim DSDelayTap
+srk2 = ReadUIConfig("输入框2")
+DSDelayTap = CInt (srk2)
+
+'''相似度
+Dim srk_xsd
+Dim xsd
+srk_xsd = ReadUIConfig("输入框_xsd")
+xsd = CDbl(srk_xsd)
+
+
+'''RAID降临
+Dim dxk_RaidOnce
+dxk_RaidOnce = ReadUIConfig("多选框_AutoRaidOnce")
+
+'''是否自动打车
+Dim dxk_raid
+dxk_raid = ReadUIConfig("多选框_Raid")
+
+'''BOSS等级
+Dim srk_levelmin,srk_levelmax
+srk_levelmin = ReadUIConfig("输入框_LevelMin")
+srk_levelmax = ReadUIConfig("输入框_LevelMax")
+Dim LevelMin,LevelMax
+
+LevelMin = CInt(srk_levelmin)
+LevelMax = CInt(srk_levelmax)
+
+'''SR模式参数
+Dim srk_sr_levelmin,srk_sr_levelmax
+srk_sr_levelmin = ReadUIConfig("输入框_SR_LevelMin")
+srk_sr_levelmax = ReadUIConfig("输入框_SR_LevelMax")
+Dim SRLevelMin,SRLevelMax
+SRLevelMin = CInt(srk_sr_levelmin)
+SRLevelMax = CInt(srk_sr_levelmax)
+
+Dim dxk_sr_en 
+dxk_sr_en = ReadUIConfig("多选框_AutoSR_En")
+Dim dxk_sr_tickets
+dxk_sr_tickets = ReadUIConfig("多选框_AutoSR_Tickets")
+Dim dxk_sr_autofever
+dxk_sr_autofever = ReadUIConfig("多选框_AutoSR_AutoFEVER")
+
+Dim srk_sr_ticketsnum
+srk_sr_ticketsnum = ReadUIConfig("输入框_SR_TicketsCnts")
+Dim SRTicketsNum,SRTicketsCnts
+SRTicketsCnts = 0
+SRTicketsNum = CInt(srk_sr_ticketsnum)
+
+Dim SR_HP = ReadUIConfig("下拉框_SR_HP")
+
+Dim SRAutoFinish = ReadUIConfig("多选框_SR_Finish")	''自动收车
+
+
+Dim SRScreenShotMode = ReadUIConfig("下拉框_SR_ScreenShot")	''截图的选项：0是5星截图，1是全部截图
+
+
+''定义一个计数器，用来自动SR长时间后自动重启脚本，释放掉内存
+'Dim RestartCnts
+
+
+
+
+'''''开启自动打车
+If dxk_raid = True Then 
+	Delay 500
+	ShowMessage "开启自动打车！"
+'	Delay 500
+'	Thread.Start(AutoReflash)
+End If
+
+'''自动SR
+If dxk_sr_en = True Then 
+	ShowMessage "自动杀手模式"
+	Delay 300
+End If
+
+
+
+/***************************主流程******************************/
+Rem start
+
+'''如果开启了自动打车
+If dxk_raid = True Then 
+	AutoRaid 
+	Delay 300
+End If
+
+'''自动SR
+If dxk_sr_en = True Then 
+	AutoSR 
+	Delay 300
+End If
+
+
+'''如果没有开启SR模式，或者SR模式下的AutoFEVER没打开，那么开启自动DS和FEVER的功能
+If dxk_sr_en = False Or dxk_sr_autofever = False Then 
+	DoAutoDS 
+End If
+
+
+
+Delay 500
+Goto start
+/***************************主流程******************************/
+
+
+
+
+
+
+
+/***********自动FEVER子程序************/
+Sub DoFever()
+Dim xlk1
+xlk1 = ReadUIConfig("下拉框1")
+Dim zhz
+
+
+Dim srk1
+Dim MouseDelay
+srk1 = ReadUIConfig("输入框1")
+MouseDelay = CInt(srk1)
+
+
+
+/////计算频率之类的
+Dim srk_pl
+Dim pl
+srk_pl = ReadUIConfig("输入框_pl")
+pl = CInt(srk_pl)
+
+Dim srk_last
+Dim FeverLast
+srk_last = ReadUIConfig("输入框_Last")
+FeverLast = CInt(srk_last) * 1000
+
+'''
+Dim TotalCnts = pl * CInt(srk_last)
+Dim FeverJianGe = 1000 / pl
+
+
+ShowMessage "判断FEVER值"
+For 15
+//	FindStr(410,1089,494,1160,"FEVER","00FFAE-101010",xsd,intX,intY)
+	CvtStr = StrOffset("462|1100|00FCAC-101010,423|1123|00FFAE-101010,447|1244|00F4A6-101010,481|1244|00FFAE-101010,487|1250|000000-101010,691|1178|FFFFFF-101010,668|1273|000000-101010", 0, Yoffset)	
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		ShowMessage "FEVER达到100%！"
+		Delay MouseDelay
+		ShowMessage "共点击"&TotalCnts&"次"
+
+		Dim Cnts = 0
+		
+		While Cnts < TotalCnts
+			If dxk_f1 = True Then 
+				Tap 131,1694 + Yoffset
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f2 = True Then 
+				Tap 343,1642 + Yoffset
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f3 = True Then 
+				Tap 552,1615 + Yoffset
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f4 = True Then 
+				Tap 739,1638 + Yoffset
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f5 = True Then 
+				Tap 952,1679 + Yoffset
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+		Wend 
+
+		
+	End If
+	Delay 200
+Next
+	
+
+End Sub
+/***********自动FEVER子程序************/
+
+
+
+
+/***********自动DS子程序*************/
+Sub DoAutoDS
+	
+'KeepCapture 
+
+	If dxk1 = True Then 
+		CvtStr = StrOffset("183|1717|FFFFFF-101010,187|1720|221919-101010,191|1722|5D5050-101010", 0, Yoffset)		
+		If CmpColorEx(CvtStr, xsd) = 1 Then 
+			Tap 131,1694 + Yoffset
+			Delay DSDelayTap
+			Tap 538,1649 + Yoffset
+			Delay 1000
+			Call DoFever()
+			ShowMessage "退出FEVER"
+		Else 
+			Delay 200
+		End If
+	End If
+	
+	
+	
+	If dxk2 = True Then 
+		CvtStr = StrOffset("393|1681|FFFFFF-101010,396|1685|221919-101010,401|1687|5C4F4F-101010", 0, Yoffset)		
+		If CmpColorEx(CvtStr, xsd) = 1 Then 
+			Tap 343,1642 + Yoffset
+			Delay DSDelayTap
+			Tap 538,1649 + Yoffset
+			Delay 1000
+			Call DoFever()
+			ShowMessage "退出FEVER"
+		Else 
+			Delay 200
+		End If
+	End If
+	
+	
+	
+	If dxk3 = True Then 
+		CvtStr = StrOffset("588|1669|FFFFFF-101010,591|1673|201717-101010,596|1675|5B4E4E-101010", 0, Yoffset)		
+		If CmpColorEx(CvtStr, xsd) = 1 Then
+			Tap 552,1615 + Yoffset
+			Delay DSDelayTap
+			Tap 538,1649 + Yoffset
+			Delay 1000
+			Call DoFever()
+			ShowMessage "退出FEVER"
+		Else 
+			Delay 200
+		End If
+	End If
+	
+	
+	
+	
+	If dxk4 = True Then 
+		CvtStr = StrOffset("782|1694|FFFFFF-101010,785|1698|201717-101010,788|1701|5C4F4F-101010", 0, Yoffset)		
+		If CmpColorEx(CvtStr, xsd) = 1 Then
+			Tap 739,1638 + Yoffset
+			Delay DSDelayTap
+			Tap 538,1649 + Yoffset
+			Delay 1000
+			Call DoFever()
+			ShowMessage "退出FEVER"
+		Else 
+			Delay 200
+		End If
+	End If
+	
+	
+	If dxk5 = True Then 
+		CvtStr = StrOffset("991|1733|FFFFFF-101010,995|1737|241B1B-101010,996|1741|5D5050-101010", 0, Yoffset)		
+		If CmpColorEx(CvtStr, xsd) = 1 Then
+			Tap 952,1679 + Yoffset
+			Delay DSDelayTap
+			Tap 538,1649 + Yoffset
+			Delay 1000
+			Call DoFever()
+			ShowMessage "退出FEVER"
+		Else 
+			Delay 200
+		End If
+	End If	
+		
+	'''普通战斗胜利	
+'	TracePrint 6
+'	If CmpColorEx("529|770|00CBFF-101010,535|761|5E5160-101010,550|776|5A4C5B-101010,536|889|000000-101010,543|882|003C88-101010", 0.9) = 1 Then 
+'		Tap 543, 957
+'		Delay 300
+'	End If
+	
+	'''获得战利品
+'	TracePrint 7
+'	If CmpColorEx("536|1291|4B443C-101010,540|1306|007EEB-101010,541|1326|000001-101010,538|1336|FFFFFF-101010,539|1378|007CEB-101010", 0.9) = 1 Then 
+'		Tap 550, 1336
+'		Delay 300
+'	End If
+	
+	'''Raid降临自动战斗一次并且开启自动打车
+	If dxk_RaidOnce = True Then 
+		CvtStr = StrOffset("536|1444|3C3C67-101010,540|1461|0052EC-101010,413|1496|FFFFFF-101010,432|1586|353D5B-101010,429|1522|007BFF-101010", 0, Yoffset)		
+		If CmpColorEx(CvtStr, xsd) = 1 Then
+			Tap 548, 1512 + Yoffset
+			dxk_raid = True
+			Delay 3000
+			AutoRaid 
+		End If 
+	Else 
+		Delay 200
+	End If
+	
+'ReleaseCapture	
+
+End Sub
+/***********自动DS子程序*************/
+
+
+
+
+
+
+
+/*****************自动打车*****************/
+Sub AutoRaid
+
+'956,747,1041,1261
+
+Dim StartX = 975
+Dim StartY = 752 + Yoffset
+Dim EndX = 1052
+Dim EndY = 1261 + Yoffset
+
+Dim nx1,ny1,nx2,ny2	'这组坐标用来判断挑战次数
+Dim lx1,ly1,lx2,ly2 '这组坐标用来判断BOSS等级
+
+
+Dim LastY = StartY	'记录上一次找到的20人标志，然后在这个基础上Y坐标往下移继续寻找下一个20人标志
+
+
+'''判断是否有刷新副本的图标
+CvtStr = StrOffset("64|643|11BEDA-101010,64|637|5D534B-101010,62|664|0D9FD6-101010,71|666|0C9CD6-101010,68|673|38322C-101010", 0, Yoffset)
+If CmpColorEx(CvtStr,0.9) = 1 Then
+	
+	'''有刷新标志就先刷新一下
+	Tap 69,656 + Yoffset
+	ShowMessage "刷新副本列表"
+	Delay 2000
+	KeepCapture 
+	
+	
+	Dim TicketNum
+	TicketNum = CInt(SmartOcr(959, 548, 995, 603, "FFFFFF-101010"))	
+	
+	
+	
+	''''副本胜利	
+	FindMultiColor 508,837 + Yoffset,518,853 + Yoffset,"0B0908-101010","-7|-8|47F1DE-101010,27|19|201E1C-101010,53|-7|45EED1-101010,60|22|28D45B-101010,68|21|11100F-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then 
+		ShowMessage "安全下车了！"
+		Tap intX, intY
+		Delay 1000
+		Tap 540,845
+		Delay 1000
+		Tap 540,845
+		Delay 1000
+		ReleaseCapture 
+		Exit Sub
+	End If
+	'''副本失败
+	FindPic 480, 776 + Yoffset, 573, 1620 + Yoffset, "Attachment:Raid副本失败.png", "000000", 0, 0.9, intX, intY	
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY
+		Delay 2000
+		ReleaseCapture
+		Exit Sub
+	End If
+	
+	
+	If TicketNum = 0 Then		
+		ShowMessage "门票为0"
+		Delay 3000
+	Else 
+		ShowMessage "还有"&TicketNum&"张门票"
+		Delay 500
+		
+		'''一共循环滑动屏幕N次
+		For 2
+			
+			While LastY < EndY		'这个while是为了遍历寻找20人			
+			
+				TracePrint StartX&","&LastY&","&EndX&","&EndY
+				
+				'FindStr(StartX,LastY,EndX,EndY,"20人","999999-101010",xsd,intX,intY)	'判断后面是否显示/20人
+				'FindMultiColor StartX,LastY,EndX,EndY,"FFFFFF","0|-4|FFFFFF,-6|1|FFFFFF,6|1|FFFFFF,0|7|FFFFFF,-9|16|FFFFFF,10|17|FFFFFF,-14|23|FFFFFF,14|23|FFFFFF,-8|1|222222-101010",0,0.9,intX,intY
+				FindMultiColor StartX,LastY,EndX,EndY,"999999-101010","-3|10|999999-101010,-5|17|999999-101010,6|-1|999999-101010,12|0|999999-101010,5|19|999999-101010,18|0|999999-101010,18|18|999999-101010,25|18|999999-101010,25|0|999999-101010",0,0.9,intX,intY
+				If intX > -1 And intY > -1 Then
+					ShowMessage "发现车子"
+					Delay 500
+					nx1 = intX - 597
+					ny1 = intY + 158					
+					nx2 = intX - 497
+					ny2 = intY + 200
+					
+					lx1 = intX - 982
+					ly1 = intY + 40
+					lx2 = intX - 827
+					ly2 = intY + 160
+					
+					
+					
+					
+					
+					'''''临时测试用，到时候删除
+					''先找人形的图标
+					FindMultiColor intX - 80 ,intY - 20,intX - 45 ,intY + 5,"FFFFFF-101010","-6|6|FFFFFF-101010,7|6|FFFFFF-101010,-14|28|FFFFFF-101010,15|28|FFFFFF-101010",0,0.9,intX,intY
+					If intX > -1 And intY > -1 Then
+						Dim tmpcnt
+						tmpcnt = SmartOcr(intX + 17 , intY - 5, intX + 60, intY + 35, "FFFFFF-101010")
+						ShowMessage "已经有"&tmpcnt&"人上车"
+						Delay 500
+					End If
+					
+
+					
+					
+
+'					TracePrint "nx1="&nx1
+'					TracePrint "ny1="&ny1
+'					TracePrint "nx2="&nx2
+'					TracePrint "ny2="&ny2
+					
+					Dim result	'定义一个变量，1表示挑战的次数是1，已经打过的车子，0表示挑战次数是0，没打过					
+					result = 1					
+'					FindStr(nx1,ny1,nx2,ny2,"挑战0","00C4FF-101010",0.7,intX,intY)	//判断次数是否为0			
+'					If intX > -1 And intY > -1 Then 
+'						result = 0
+'					End If
+						
+'					If result = 1 Then 
+'						FindStr nx1, ny1, nx2, ny2, "挑战0a", "00C4FF-101010", 0.7, intX, intY
+'						If intX > -1 And intY > -1 Then 
+'							result = 0
+'						End If
+'					End If
+
+					FindMultiColor nx1, ny1, nx2, ny2,"000000-101010","0|9|000000-101010,0|-4|00C4FF-101010,-4|-1|00C4FF-101010,-5|4|00C4FF-101010,-4|10|00C4FF-101010,0|13|00C4FF-101010,3|11|00C2FD-101010,5|5|00C4FF-101010,4|-2|00BFF9-101010",0,0.8,intX,intY
+					If intX > -1 And intY > -1 Then 
+						result = 0
+					End If
+					
+					
+					If result = 0 Then ''''判断车子没有打过以后，再判断车子等级是否符合
+					
+						'''是否需要判断等级
+						Dim LevelLimit = ReadUIConfig ("多选框_LevelLimit")	
+						If LevelLimit = False Then 
+						
+							''''作者专用截图。用在720p的情况下，截取车子的等级，做字库
+							Dim atss = ReadUIConfig("多选框_atscreenshot")
+							If atss = True Then 
+								Name = Time()
+								SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
+								Delay 1000	
+							End If
+							
+							Tap intX, intY
+							ShowMessage "搭车"
+							Goto SkipSearchRaid
+						End If
+						
+						Dim BossLevelResult
+						BossLevelResult = CheckBossLevel(lx1, ly1, lx2, ly2)
+						
+						If BossLevelResult = "" Then 
+							ShowMessage "BOSS等级读取错误"
+							Delay 2000
+							Goto SkipSearchRaid
+						End If
+						
+
+						
+						ShowMessage "BOSS等级是" & BossLevelResult
+						
+						Dim tmplevel
+						tmplevel = CInt(BossLevelResult)
+						
+						If tmplevel >= LevelMin And tmplevel <= LevelMax Then 
+						
+							''''作者专用截图。用在720p的情况下，截取车子的等级，做字库
+							atss = ReadUIConfig("多选框_atscreenshot")
+							If atss = True Then 
+								Name = Time()
+								SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
+								Delay 1000	
+							End If
+							
+							Tap intX, intY
+							ShowMessage "搭车"
+							Goto SkipSearchRaid
+						Else 
+							ShowMessage "车子等级不符合"
+						End If
+						Delay 2000
+					Else 
+						ShowMessage "车子已经打过"
+						Delay 1000
+					End If
+				Else'如果找不到车子 
+'					Swipe 550, 1500, 550, 1400	
+'					Goto SkipSearchRaid
+'					LastY = StartY
+'					ShowMessage "找不到车子，滑动一下屏幕
+
+
+					'''副本失败
+					FindPic 480, 776 + Yoffset, 573, 1620 + Yoffset, "Attachment:Raid副本失败.png", "000000", 0, 0.9, intX, intY	
+					If intX > -1 And intY > -1 Then
+						Tap intX, intY
+						Delay 2000
+						Exit Sub
+					End If
+					Delay 300
+				End If
+				
+				'往下寻找车子
+				LastY = LastY + 300
+				ShowMessage "寻找下一辆车子"
+				
+				Delay 500		
+				
+			Wend
+			
+'			Rem SkipSearchRaid
+			If fbl = 2 Then 
+				Swipe 550, 1500, 550, 1350
+			Else 
+				Swipe 550, 1500 + Yoffset, 550, 1280 + Yoffset
+			End If
+			
+			LastY = StartY
+			ShowMessage "再次查找是否有车子"
+			Delay 1000
+		Next
+		
+		'''找不到车子，等5秒继续
+		ShowMessage "找不到车子，等5秒继续"
+		Delay 5000
+		Exit Sub
+			
+	End If	''判断是否有门票
+	ReleaseCapture
+End If	''判断是否有刷新副本的标志
+
+
+
+
+
+
+
+''''跳过找车的过程
+Rem SkipSearchRaid
+
+ReleaseCapture 
+KeepCapture
+
+'''''如果在战斗中，那么跳过一些判断，可以少占用一部分资源
+Dim tmpstr1 = "402|31|FFFFFF-101010,24|57|515151-101010,49|57|181818-101010,393|51|FFFFFF-101010,1066|87|535353-101010"
+Dim tmpstr2 = "970|137|666666-101010,978|135|646265-101010,993|136|666666-101010,1000|133|666666-101010,1020|128|666666-101010,1054|117|666666-101010"
+CvtStr = StrOffset(tmpstr1, 0, Yoffset)
+CvtStr2 = StrOffset(tmpstr2, 0, Yoffset)
+If CmpColorEx(CvtStr, 0.9) = 1 Or CmpColorEx(CvtStr2, 0.9) = 1 Then 
+
+'	ShowMessage "在战斗中..."
+	
+Else 
+
+'	ShowMessage "没在战斗"
+	
+	''''战斗失败
+	CvtStr = StrOffset("528|710|03039D-101010,533|711|01016C-101010,541|718|171114-101010,557|718|030391-101010,471|775|0048FF-101010,574|762|0F0B0D-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 965, 1370 + Yoffset		
+		Delay 1000
+	End If
+	Delay 50
+		
+	''''战斗胜利
+	FindMultiColor 552, 641 + Yoffset, 585, 672 + Yoffset, "151012-101010", "-34|-11|97E6EC-101010,-38|43|416E8E-101010,27|-26|95E6EC-101010,27|37|3E6A8B-101010,59|74|120D10-101010", 0, 0.9, intX, intY	
+	If intX > -1 And intY > -1 Then 
+		ShowMessage "战斗胜利"
+		Tap 543, 992 + Yoffset		
+		Delay 1000
+	End If
+	Delay 50
+	
+	'''进入战斗
+	FindMultiColor 894, 522 + Yoffset, 1006, 794 + Yoffset, "00EAFF-101010", "1|7|00001A-101010,0|13|00BBFF-101010,5|23|0060E0-101010,1|48|000066-101010", 0, 0.9, intX, intY	
+	If intX > -1 And intY > -1 Then 
+		ReleaseCapture
+		'''进入战斗了，先判断BOSS是什么属性的
+		FindMultiColor 346, 637 + Yoffset, 712, 672 + Yoffset, "151515-101010", "1|0|0101F3-101010,1|-1|151515-101010,0|12|151515-101010,1|12|0101F3-101010,1|6|0101F3-101010,3|6|0000F9-101010,1|13|151515-101010,2|6|0000F9-101010,11|10|151515-101010", 0, 0.9, intX, intY		
+		If intX > -1 And intY > -1 Then 
+			TracePrint intX & "," & intY
+			If CmpColor(intX - 15, intY + 16, "1633FF-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是火属性，队伍选择"&BossHuoTeam&"号"
+				TeamSelect BossHuoTeam
+			ElseIf CmpColor(intX - 17, intY + 17, "D68324-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是水属性，队伍选择"&BossShuiTeam&"号"
+				TeamSelect BossShuiTeam
+			ElseIf CmpColor(intX - 17, intY + 16, "08B684-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是木属性，队伍选择"&BossMuTeam&"号"
+				TeamSelect BossMuTeam
+			ElseIf CmpColor(intX - 17, intY + 16, "4FE1F2-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是光属性，队伍选择"&BossGuangTeam&"号"
+				TeamSelect BossGuangTeam
+			ElseIf CmpColor(intX - 19, intY + 17, "8F4975-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是暗属性，队伍选择"&BossAnTeam&"号"
+				TeamSelect BossAnTeam
+			Else 
+				ShowMessage "BOSS属性未识别"
+			End If
+		Else 
+			ShowMessage "没有找到BOSS字样"
+		End If
+		
+		Delay 200
+		ShowMessage "进入战斗"
+		Tap 945, 615 + Yoffset
+		Delay 1000
+	End If
+	Delay 50
+	
+	''''结算确认，点击OK按键
+	CvtStr = StrOffset("541|1595|574E45-101010,548|1603|00E1FF-101010,543|1612|007EEB-101010,541|1679|00E1FF-101010,541|1692|0E0C0B-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		ShowMessage "结算确认"
+		Tap 521, 1639 + Yoffset
+		Delay 300
+	End If
+	Delay 50
+	
+	'''NOTICE已完成的Raid
+	CvtStr = StrOffset("104|771|00C4FF-101010,115|782|333333-101010,152|772|00C4FF-101010,421|1029|5C5248-101010,426|1038|00DCFE-101010,438|1046|0083EC-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 527, 1057 + Yoffset
+		Delay 500
+	End If
+	Delay 100
+	
+	'''宝箱
+	CvtStr = StrOffset("503|613|F6FFFF-101010,510|612|00090F-101010,517|614|F7FFFF-101010,521|614|040B11-101010,541|613|00070C-101010,563|611|FFFFFF-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 681, 387 + Yoffset
+		Delay 2000		
+	End If
+	Delay 50
+	
+	'''宝箱开出来的OK
+	CvtStr = StrOffset("537|1561|524941-101010,539|1568|00E1FF-101010,537|1576|007DEB-101010,399|1609|36312B-101010,408|1598|00C2F8-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Delay 1000		''防止光芒照在角色脸上，看不清楚，所以先加点延时，再截图
+	 	Name = Time()
+		SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
+		Tap 535, 1615 + Yoffset
+		Delay 1000
+	End If
+	Delay 50
+	
+	'''''金币副本的倍率
+	CvtStr = StrOffset("312|939|81C0D5-101010,327|943|040822-101010,312|972|020218-101010,324|972|619AB7-101010,327|999|02041C-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 529, 1169 + Yoffset
+		Delay 5000
+	End If
+	Delay 50
+	
+	''''金币副本倍率之后的确认
+	CvtStr = StrOffset("525|1298|00E2FF-101010,532|1311|0080EB-101010,413|1329|3A352E-101010,544|1382|007AEA-101010,668|1329|3E3831-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 540, 1338 + Yoffset
+		Delay 3000
+	End If 
+	Delay 50
+	
+	
+End If	
+
+ReleaseCapture
+	
+End Sub
+/*****************自动打车*****************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/***********************队伍选择****************************/
+Sub TeamSelect(number)
+
+Dim zhuanhua
+Dim ocrchar
+
+Dim aa()
+
+zhuanhua = 1
+
+
+aa(0) = StrOffset("214|264|00C4FF-101010,219|264|00C4FF-101010,211|271|01040B-101010,227|283|00C4FF-101010,227|299|00C4FF-101010,239|300|00C4FF-101010", 0 , Yoffset)
+aa(1) = StrOffset("214|264|00C4FF-101010,226|265|00C4FF-101010,212|284|00C0FA-101010,232|283|00C4FF-101010,240|300|00C2FC-101010,247|290|000000-101010", 0 , Yoffset)
+aa(2) = StrOffset("212|263|00C2FC-101010,225|264|00BFF8-101010,213|279|00B9F1-101010,230|282|00C4FF-101010,237|300|00C4FF-101010,249|283|00C4FF-101010", 0 , Yoffset)
+aa(3) = StrOffset("220|263|00C4FF-101010,228|263|00C4FF-101010,212|292|00C4FF-101010,220|281|00090C-101010,236|283|00C4FF-101010,241|283|00C4FF-101010,252|283|00C4FF-101010", 0 , Yoffset)
+aa(4) = StrOffset("213|264|00C4FF-101010,224|264|00C4FF-101010,225|267|00C4FF-101010,213|281|00C4FF-101010,233|283|00C4FF-101010,237|283|00C4FF-101010", 0 , Yoffset)
+aa(5) = StrOffset("213|264|00C4FF-101010,226|264|00C4FF-101010,212|280|00C4FF-101010,212|292|00C4FF-101010,228|298|00C4FF-101010,240|283|00C4FF-101010,251|283|00C4FF-101010", 0 , Yoffset)
+aa(6) = StrOffset("213|264|00C4FF-101010,226|264|00C4FF-101010,213|299|00C4FF-101010,232|283|00C4FF-101010,236|283|00C4FF-101010,248|283|00C4FF-101010", 0 , Yoffset)
+aa(7) = StrOffset("214|264|00C4FF-101010,228|264|00C4FF-101010,229|271|00C4FF-101010,212|290|00C4FF-101010,236|283|00C4FF-101010,241|283|00C4FF-101010,252|283|00C4FF-101010", 0 , Yoffset)
+aa(8) = StrOffset("213|264|00C4FF-101010,228|264|00C3FE-101010,213|285|00C4FF-101010,220|279|000000-101010,235|283|00C4FF-101010,240|283|00C4FF-101010,251|283|00C4FF-101010", 0, Yoffset)
+
+aa(9) = StrOffset("215|265|00C4FF-101010,213|299|00C4FF-101010,243|266|00C4FF-101010,236|282|000000-101010,64|201|000000-101010", 0 , Yoffset)
+aa(10) = StrOffset("215|264|00C4FF-101010,218|264|00C4FF-101010,213|299|00C4FF-101010,221|299|00C4FF-101010,231|264|00C4FF-101010,234|264|00C4FF-101010,229|299|00C4FF-101010,237|299|00C4FF-101010,75|198|000000-101010", 0 , Yoffset)
+aa(11) = StrOffset("215|265|00C4FF-101010,213|299|00C4FF-101010,241|265|00C4FF-101010,236|281|00C4FF-101010,97|201|000000-101010", 0, Yoffset)
+
+'''一直循环判断，直到选择到指定队伍
+While 1
+
+	//弹出召唤的提示
+'	CvtStr = StrOffset("709|101|008EFF-101010,698|89|00BBFF-101010,702|101|00002C-101010,696|113|0060FF-101010,709|108|00002C-101010,721|113|0060FF-101010", 0, Yoffset)
+'	If CmpColorEx(CvtStr,0.9) = 1 Then
+	FindMultiColor 699,92 + Yoffset,719,109 + Yoffset,"0092FF-101010","-12|-12|00BEFF-101010,-13|14|005EFF-101010,-6|1|000937-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY		
+		Delay 100
+	End If
+
+	''获取当前的队伍编号	
+	
+	KeepCapture 
+	For i = 0 To UBound(aa)
+		If CmpColorEx(aa(i), 0.9) = 1 Then 
+			zhuanhua = i + 1
+			Exit For
+		End If
+	Next
+	
+	ReleaseCapture
+	
+	
+	ShowMessage "当前是" & zhuanhua & "号队伍!"
+	Delay 300
+	
+	If zhuanhua < number Then 
+		Tap 1056,205 + Yoffset
+		Delay 100
+	ElseIf zhuanhua = number Then
+		ShowMessage "已经选择到"&number&"号队伍"
+		Exit Sub
+	Else 
+		Tap 19,205 + Yoffset
+		Delay 100
+	End If
+
+Wend
+
+
+
+End Sub
+
+
+/*****************判断RAID等级*****************/
+Function  CheckBossLevel(x1,y1,x2,y2)
+	
+'UseDict(1)
+
+Dim ocrchar
+ocrchar=Ocr(x1,y1,x2,y2,"FFFFFF-101010",0.9)
+'ocrchar = SmartOcr(x1,y1,x2,y2,"FFFFFF-101010")
+Traceprint "Boss等级是:"&ocrchar
+'UseDict(0)
+
+CheckBossLevel = ocrchar
+End Function
+
+
+
+
+
+/*****************自动SR*****************/
+
+
+Sub AutoSR
+
+
+Dim num = 1
+
+
+'985,418,1046,470
+Dim StartX = 987
+Dim StartY = 418 + Yoffset
+Dim EndX = 1046
+Dim EndY = 470 + Yoffset
+
+Dim nx1,ny1,nx2,ny2	'这组坐标用来判断挑战次数
+Dim lx1,ly1,lx2,ly2 '这组坐标用来判断BOSS等级
+Dim fx1,fy1,fx2,fy2 '这组坐标用来判断是否满20人了
+Dim hpx,hpy '这组坐标用来判断血量是否合格
+
+
+Dim LastY = StartY	'记录上一次找到的20人标志，然后在这个基础上Y坐标往下移继续寻找下一个20人标志
+
+
+KeepCapture
+
+
+''''判断是否存在SR杀手模式
+CvtStr = StrOffset("814|372|419FF0-101010,820|391|3346ED-101010,828|379|48473C-101010,830|404|290BEB-101010,811|412|170C3B-101010", 0, Yoffset)
+If CmpColorEx(CvtStr,0.9) = 1 Then
+	''''副本胜利	
+	If SRAutoFinish = True Then 	''开启自动收车
+		CvtStr = StrOffset("545|830|191717-101010,538|837|42CDB9-101010,540|845|282523-101010,539|852|39F2AE-101010,539|864|100007-101010,539|871|25B746-101010", 0, Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			ShowMessage "安全下车了！"
+			Tap 540,845 + Yoffset
+			Delay 1000
+			Tap 540,845 + Yoffset
+			Delay 1000
+			Tap 540,845 + Yoffset
+			Delay 1000
+			ReleaseCapture
+			Exit Sub
+		End If
+	End If
+
+	''''''判断是否有门票
+	ShowMessage "判断门票"
+	Delay 500
+	CvtStr = StrOffset("995|576|5B5758-101010,1009|590|5B5959-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		ShowMessage "门票不为0"
+		Delay 500
+		Tap 818, 389 + Yoffset	''进入杀手副本界面
+		ReleaseCapture
+		Delay 3000
+	Else'''判断门票是否0 
+		ShowMessage "门票为0"
+		
+		''如果开启了自动购买门票	
+		If dxk_sr_tickets = True Then 
+			''如果设定的购买门票次数是0，表示不限制购买次数，或者是已经购买的次数小于设定的次数
+			If SRTicketsNum = 0 Or SRTicketsCnts < SRTicketsNum Then 
+				CvtStr = StrOffset("994|575|00CFFF-101010,995|591|00B8FF-101010,1012|592|00A5FF-101010,1007|578|00C3FF-101010", 0, Yoffset)
+				If CmpColorEx(CvtStr,0.9) = 1 Then
+					Tap 1002, 584 + Yoffset	'''点击+号买门票
+					ReleaseCapture	'释放
+					Delay 500					
+				End If
+			Else 
+				ShowMessage "已经购买了" & SRTicketsCnts & "次门票了！"
+				Delay 3000
+			End If
+		Else 
+			Delay 3000
+		End If
+		
+
+	End If				
+			
+End If			
+
+'''确认购买门票
+CvtStr = StrOffset("90|734|00C4FF-101010,99|731|333333-101010,116|741|00C4FF-101010,126|742|333333-101010,216|1061|504840-101010,220|1066|00DCFE-101010,234|1070|0080EB-101010,620|1059|5C5248-101010,627|1062|00DFFE-101010,637|1070|0080EB-101010", 0, Yoffset)
+If CmpColorEx(CvtStr,0.9) = 1 Then
+	Tap 734, 1093 + Yoffset	''确认购买
+	SRTicketsCnts = SRTicketsCnts + 1
+	If SRTicketsNum = 0 Then 
+		ShowMessage "不限次数，已购买"&SRTicketsCnts&"次门票"
+	Else 
+		ShowMessage "已经购买了"&SRTicketsCnts&"次门票了！"
+	End If
+	Delay 1000
+End If
+
+
+
+
+''''杀手副本界面
+CvtStr = StrOffset("313|206|2844F5-101010,698|139|3A91EF-101010,713|268|18111A-101010,830|244|0000FE-101010,1004|290|5590A4-101010,105|1386|0000FF-101010,112|1386|110A13-101010", 0, Yoffset)
+If CmpColorEx(CvtStr, 0.9) = 1 Then 
+	KeepCapture
+	For  3	
+	
+		''第一辆车
+		TracePrint StartX&","&StartY&","&EndX&","&EndY
+'		FindStr(StartX,StartY,EndX,EndY,"20人","999999-101010",xsd,intX,intY)	'判断后面是否显示/20人
+		FindMultiColor StartX,StartY,EndX,EndY,"999999-101010","-3|10|999999-101010,-5|17|999999-101010,6|-1|999999-101010,12|0|999999-101010,5|19|999999-101010,18|0|999999-101010,18|18|999999-101010,25|18|999999-101010,25|0|999999-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			ShowMessage "发现第" & num & "辆车子"
+			TracePrint intX&","&intY
+	'		Delay 500
+			
+			''挑战次数坐标区间
+			nx1 = intX - 590
+			ny1 = intY + 158
+			nx2 = intX - 490
+			ny2 = intY + 200
+			
+			''BOSS等级坐标区间
+			lx1 = intX - 975
+			ly1 = intY + 40
+			lx2 = intX - 820
+			ly2 = intY + 160
+			
+			''是否满人坐标区间
+			fx1 = intX - 55
+			fy1 = intY - 20
+			fx2 = intX + 5
+			fy2 = intY + 33				
+			
+			''血量坐标点
+			hpy = intY + 161
+			Select Case SR_HP
+				Case 0
+				hpx = intX - 638
+				Case 1
+				hpx = intX - 495
+				Case 2
+				hpx = intX - 318
+			End Select
+			
+			''''判断车子是不是满20人了
+			FindStr(fx1,fy1,fx2,fy2,"满20人","FFFFFF-101010",0.9,intX,intY)
+			If intX > -1 And intY > -1 Then
+				ShowMessage "车子已经满20人了"
+				Delay 1000
+			Else 
+				
+				'''判断完车子不满人，再判断血量达不达标
+				TracePrint "血量判断的坐标点："&hpx&","&hpy
+				If CmpColor(hpx, hpy, "272726-101010 | ", 0.8) = -1 Then 
+	'				ShowMessage "血量判断合格"
+	'				Delay 300
+					
+					//下面这里是判断是否挑战过，因为发现很多个0截图出来的都不一样，所以都要添加进去
+					Dim result	'定义一个变量，1表示挑战的次数是1，已经打过的车子，0表示挑战次数是0，没打过
+				
+					result = 1
+					
+'					FindStr(nx1,ny1,nx2,ny2,"挑战0","00C4FF-101010",0.7,intX,intY)	//判断次数是否为0			
+'					If intX > -1 And intY > -1 Then 
+'							result = 0
+'					End If
+					
+'					If result = 1 Then 
+'					FindStr nx1, ny1, nx2, ny2, "挑战0a", "00C4FF-101010", 0.7, intX, intY
+'						If intX > -1 And intY > -1 Then 
+'							result = 0
+'						End If
+'					End If
+
+					FindMultiColor nx1, ny1, nx2, ny2,"000000-101010","0|9|000000-101010,0|-4|00C4FF-101010,-4|-1|00C4FF-101010,-5|4|00C4FF-101010,-4|10|00C4FF-101010,0|13|00C4FF-101010,3|11|00C2FD-101010,5|5|00C4FF-101010,4|-2|00BFF9-101010",0,0.8,intX,intY
+					If intX > -1 And intY > -1 Then 
+						result = 0
+					End If
+			
+					If result = 0 Then ''''判断车子没有打过以后，再判断车子等级是否符合
+						
+						'''是否需要判断等级
+						Dim SRLevelLimit = ReadUIConfig ("多选框_SR_LevelLimit")	
+						If SRLevelLimit = False Then 
+							Tap intX, intY
+							ReleaseCapture	'释放
+							ShowMessage "上车"
+							Goto SkipRaidCheck
+						End If
+						
+						Dim SRBossLevelResult
+						SRBossLevelResult = CheckBossLevel(lx1, ly1, lx2, ly2)
+						
+						If SRBossLevelResult = "" Then 
+							ShowMessage "BOSS等级读取错误"
+							Delay 1000
+							Goto SkipRaidCheck
+						End If
+						
+						ShowMessage "BOSS等级是" & SRBossLevelResult
+						
+						Dim tmpsrlevel
+						tmpsrlevel = CInt(SRBossLevelResult)
+						
+						If tmpsrlevel >= SRLevelMin And tmpsrlevel <= SRLevelMax Then 
+							Tap intX, intY
+							ReleaseCapture	'释放
+							ShowMessage "上车"
+							Goto SkipRaidCheck
+						Else 
+							ShowMessage "车子等级不符合"
+						End If
+						
+						Delay 300
+						
+					Else 
+					
+						ShowMessage "车子已经打过"
+						Delay 300
+					End If
+				Else 
+					ShowMessage "血量不合格！"
+					Delay 300
+	
+				End If ''血量的判断
+	
+				
+			End If'车子是否满20人
+			
+	
+		End If    '''发现车子
+		
+		'往下寻找车子
+	'	LastY = LastY + 300
+		StartY = StartY + 315
+		EndY = EndY + 315
+		num = num + 1
+		ShowMessage "寻找下一辆车子"
+		Delay 300
+		
+	Next
+
+	'''3次循环检测完毕以后，如果都没有车子，那么退出去等待10秒再继续脚本
+	CvtStr = StrOffset("1005|291|5591A5-101010,1004|283|10141D-101010,986|272|5591A4-101010,994|290|11151D-101010,986|309|5590A4-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 1004, 291 + Yoffset
+		ReleaseCapture	'释放
+		Delay 10000
+	End If
+
+
+End If
+
+
+
+////跳过Raid的判断，认为是有效的车子
+
+Rem SkipRaidCheck
+
+KeepCapture
+
+'''''如果在战斗中，那么跳过一些判断，可以少占用一部分资源
+Dim tmpstr1 = "402|31|FFFFFF-101010,24|57|515151-101010,49|57|181818-101010,393|51|FFFFFF-101010,1066|87|535353-101010"
+Dim tmpstr2 = "970|137|666666-101010,978|135|646265-101010,993|136|666666-101010,1000|133|666666-101010,1020|128|666666-101010,1054|117|666666-101010"
+CvtStr = StrOffset(tmpstr1, 0, Yoffset)
+CvtStr2 = StrOffset(tmpstr2, 0, Yoffset)
+If CmpColorEx(CvtStr, 0.9) = 1 Or CmpColorEx(CvtStr2, 0.9) = 1 Then 
+'	ShowMessage "在战斗中..."
+	Delay 1000
+	
+Else 
+
+'	ShowMessage "没在战斗"
+	
+	''''战斗失败
+	CvtStr = StrOffset("528|710|03039D-101010,533|711|01016C-101010,541|718|171114-101010,557|718|030391-101010,471|775|0048FF-101010,574|762|0F0B0D-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 965, 1370 + Yoffset
+		ReleaseCapture	'释放
+		Delay 1000
+	End If
+		
+	''''战斗胜利
+	CvtStr = StrOffset("565|677|6193A7-101010,561|693|77C0DD-101010,549|687|100C0E-101010,501|670|4E7B9A-101010,576|687|100C0E-101010,593|691|3E6B8C-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		ShowMessage "战斗胜利"
+		Tap 543, 992 + Yoffset
+		ReleaseCapture	'释放
+		Delay 1000
+	End If
+	
+	'''进入战斗
+	FindMultiColor 898,613 + Yoffset,1008,759 + Yoffset,"00EAFF-101010","-1|7|00001A-101010,-5|9|00C3FF-101010,6|25|0060E0-101010,-1|-105|005EF7-101010,4|-93|000067-101010,7|-84|0017B9-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then 
+		ReleaseCapture	'释放
+'		ShowMessage "找到战斗图标"
+'		Delay 300
+		'''进入战斗了，选择队伍
+		TeamSelect SRBossTeam
+'		Delay 200
+		
+		If dxk_sr_autofever = True Then 
+			CvtStr = StrOffset("874|905|656361-101010,874|927|343430-101010,868|932|ADADAD-101010,905|937|C6C6C6-101010,914|938|7F7F7F-101010", 0, Yoffset)
+			If CmpColorEx(CvtStr,0.9) = 1 Then
+				Tap 907, 914 + Yoffset
+				Delay 200
+			End If
+		Else 
+			CvtStr = StrOffset("873|904|FFFFFF-101010,869|939|E25BFF-101010,882|940|FF7DC6-101010,913|939|FCFF00-101010,928|943|1EFF00-101010", 0, Yoffset)
+			If CmpColorEx(CvtStr,0.9) = 1 Then
+				Tap 907, 914 + Yoffset
+				Delay 200
+			End If			
+		End If
+		
+'		Delay 200
+		ShowMessage "进入战斗"
+		Tap 945,615 + Yoffset
+		Delay 500
+	End If
+
+	'''NOTICE已完成的Raid
+	CvtStr = StrOffset("104|771|00C4FF-101010,115|782|333333-101010,152|772|00C4FF-101010,421|1029|5C5248-101010,426|1038|00DCFE-101010,438|1046|0083EC-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 527, 1057 + Yoffset
+		Delay 500
+	End If
+	Delay 100
+	
+	'''积分溢出的提示
+	CvtStr = StrOffset("87|704|03BBF3-101010,117|719|00C4FF-101010,126|721|333333-101010,137|719|00C4FF-101010,215|1082|5A5046-101010,222|1088|00DCFE-101010,232|1095|0083EC-101010", 0, Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 729, 1120 + Yoffset		
+		Delay 1000
+	End If
+	Delay 100
+	
+	
+	
+	If SRAutoFinish = True Then 	''开启自动收车
+	
+		''''结算确认，点击OK按键
+		CvtStr = StrOffset("541|1595|574E45-101010,548|1603|00E1FF-101010,543|1612|007EEB-101010,541|1679|00E1FF-101010,541|1692|0E0C0B-101010", 0, Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+'			ShowMessage "结算确认"
+			Tap 521, 1639 + Yoffset
+			Delay 500
+		End If
+		Delay 50
+		
+		'''发现白金箱子
+		CvtStr = StrOffset("469|591|BAA490-101010,473|599|332B20-101010,477|603|FFFFFF-101010,490|603|FFFFFF-101010,566|604|FFFFFF-101010,606|604|FFFFFF-101010", 0, Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 528, 1032 + Yoffset
+			Delay 500
+		End If
+		Delay 50
+		
+		'''黄金箱子
+		CvtStr = StrOffset("505|592|2CB8ED-101010,502|602|03E5FF-101010,510|604|04E9FF-101010,534|603|02E5FF-101010,551|604|01E6FF-101010,572|603|01E4FF-101010,580|610|0BC0FF-101010", 0, Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 528, 1032 + Yoffset
+			Delay 500
+		End If
+		Delay 50
+		
+		
+		'''宝箱开出来的OK
+		CvtStr = StrOffset("537|1561|524941-101010,539|1568|00E1FF-101010,537|1576|007DEB-101010,399|1609|36312B-101010,408|1598|00C2F8-101010", 0, Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+	 		Name = Time()	 		
+			If SRScreenShotMode = 0 Then 
+				'''宝箱里有5星卡
+				CvtStr = StrOffset("631|1250|9CFFFF-101010,655|1263|A4FFFF-101010,642|1285|84F5FF-101010,406|1567|625248-101010,409|1575|08DCFE-101010,421|1581|0682EC-101010", 0, Yoffset)
+				If CmpColorEx(CvtStr, 0.9) = 1 Then 
+					Delay 1000
+					SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
+					Tap 535, 1615 + Yoffset
+					Delay 500
+				Else 
+					Tap 535, 1615 + Yoffset
+					Delay 500
+				End If
+			Else 	''全部都截图
+				Delay 1000
+				SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
+				Tap 535, 1615 + Yoffset
+				Delay 500
+			End If
+	
+
+		End If
+		Delay 50
+	
+
+	End If	''开启自动收车
+	
+End If
+
+	
+
+ReleaseCapture	'释放
+	
+End Sub
+
+/*****************自动重启脚本*****************/
+Sub AutoRestart
+	
+'	RestartCnts = RestartCnts + 1
+	
+	'''如果有选择自动买票，并且买票的数量不是0的情况
+'	If dxk_sr_tickets = True And SRTicketsNum = 0 Then 
+	
+	
+	
+End Sub
+
+
+
+/***********字符串分割加偏移*************/
+Function StrOffset(str, x, y)
+	Dim OnePoint,Member,Result
+	Dim i,j	
+	
+	
+	OnePoint = Split(str, ",")
+		
+	For i = 0 To UBOUND(OnePoint)
+'		TracePrint "OnePoint"&i&"="&OnePoint(j)
+		Member = Split(OnePoint(i), "|")
+		For j = 0 To UBOUND(Member)
+'			TracePrint "Member"&j&"="&Member(j)
+			If j Mod 3 = 0 Then
+				Member(j) = CStr(CInt(Member(j) + x)) & "|"
+			ElseIf j Mod 3 = 1 Then
+				Member(j) = CStr(CInt(Member(j) + y)) & "|"
+			ElseIf j Mod 3 = 2 Then
+				Member(j) = Member(j) & ","
+			End If
+			Result = Result & Member(j)
+'			TracePrint "Result = "& Result
+		Next
+		
+	Next
+		
+	
+	StrOffset = Result	
+	
+	
+End Function

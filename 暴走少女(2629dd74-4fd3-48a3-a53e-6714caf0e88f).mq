@@ -1,0 +1,40 @@
+Dim xlk1
+
+Dim srk1
+Dim MouseDelay
+
+srk1 = ReadUIConfig(" ‰»ÎøÚ1")
+xlk1 = ReadUIConfig("œ¬¿≠øÚ1")
+If xlk1 = 0 Then 
+	MouseDelay = CInt (srk1)
+	ShowMessage " Û±Í—”≥Ÿ"&MouseDelay&"∫¡√Î£°"
+	Goto start1
+ElseIf xlk1 = 1 Then
+	MouseDelay = CInt (srk1)
+	ShowMessage " Û±Í—”≥Ÿ"&MouseDelay&"∫¡√Î£°"
+	Goto start2	
+End If
+
+
+
+Rem start1
+If CmpColorEx("30|507|02BADB,26|519|6EEFFB",0.9) = 1 Then
+	Tap 230, 267
+	Delay MouseDelay 
+	Goto start1
+Else 
+	EndScript
+End If 	
+
+
+Rem start2
+
+If CmpColorEx("30|507|02BADB,26|519|6EEFFB",0.9) = 1 Then
+	Tap 793, 103
+	Delay 10
+	Tap 475, 264
+	Delay MouseDelay
+	Goto start2
+Else 
+	EndScript
+End If

@@ -1,0 +1,6 @@
+Dim intX,intY
+FindPic 1077,311,1173,393, "Attachment:DriverSkillPressButton.png", "010101", 0, 0., intX, intY
+If intX > -1 And intY > -1 Then
+	TracePrint intX
+	TracePrint intY
+End If

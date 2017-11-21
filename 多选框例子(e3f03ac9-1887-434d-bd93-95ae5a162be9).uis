@@ -1,0 +1,14 @@
+Function a
+    UIP.SetAttribute "多选框2", {"选中":false}
+    UIP.SetAttribute "多选框3", {"选中":false}
+End Function
+
+Function b
+    UIP.SetAttribute "多选框1", {"选中":false}
+    UIP.SetAttribute "多选框3", {"选中":false}
+End Function
+
+Function c
+    UIP.SetAttribute "多选框1", {"选中":false}
+    UIP.SetAttribute "多选框2", {"选中":false}
+End Function

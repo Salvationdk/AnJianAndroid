@@ -1,0 +1,3 @@
+Dim rColor
+rColor = GetPixelColor(300, 300,0)
+TracePrint "这个点的颜色为："&rColor

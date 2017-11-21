@@ -1,0 +1,622 @@
+SetRowsNumber(0)
+//注意：每次制作完字库后，需要自行把制作的字库文件添加到脚本“附件”中
+TracePrint SetDictEx(0, "Attachment:mq_soft.txt")
+TracePrint UseDict(0)
+//以上两句脚本只需要调用一次
+
+Dim intX,intY
+
+Dim dxk1,dxk2,dxk3,dxk4,dxk5
+
+
+'这里是DS的选择
+dxk1 = ReadUIConfig("多选框1")
+dxk2 = ReadUIConfig("多选框2")
+dxk3 = ReadUIConfig("多选框3")
+dxk4 = ReadUIConfig("多选框4")
+dxk5 = ReadUIConfig("多选框5")
+
+'这里是FEVER的选择
+Dim dxk_f1 = ReadUIConfig ("多选框_f1")
+Dim dxk_f2 = ReadUIConfig ("多选框_f2")
+Dim dxk_f3 = ReadUIConfig ("多选框_f3")
+Dim dxk_f4 = ReadUIConfig ("多选框_f4")
+Dim dxk_f5 = ReadUIConfig ("多选框_f5")
+
+
+'If dxk_f2 = True Then 
+'	ShowMessage "FEVER2号"
+'	Delay 1000
+'End If
+
+
+'这里是Raid队伍的选择
+Dim BossHuoTeam = ReadUIConfig ("下拉框_Team_Huo") + 1
+Dim BossShuiTeam = ReadUIConfig ("下拉框_Team_Shui") + 1
+Dim BossMuTeam = ReadUIConfig ("下拉框_Team_Mu") + 1
+Dim BossGuangTeam = ReadUIConfig ("下拉框_Team_Guang") + 1
+Dim BossAnTeam = ReadUIConfig ("下拉框_Team_An") + 1
+
+
+
+Delay 1000
+If dxk1 = True Then 
+	ShowMessage "1号勾选"
+	Delay 500
+End If
+If dxk2 = True Then 
+	ShowMessage "2号勾选"
+	Delay 500
+End If
+If dxk3 = True Then 
+	ShowMessage "3号勾选"
+	Delay 500
+End If
+If dxk4 = True Then 
+	ShowMessage "4号勾选"
+	Delay 500
+End If
+If dxk5 = True Then 
+	ShowMessage "5号勾选"
+	Delay 500
+End If
+
+Delay 500
+
+'Dim xlk1
+'xlk1 = ReadUIConfig("下拉框1")
+'ShowMessage "Fever选择"&xlk1+1&"号"
+'Delay 1000
+
+
+'''FEVER延时
+Dim srk1
+Dim MouseDelay
+srk1 = ReadUIConfig("输入框1")
+MouseDelay = CInt (srk1)
+'ShowMessage "Fever100%延迟" & MouseDelay & "毫秒！"
+'Delay 500
+
+'''DS延迟
+Dim srk2
+Dim DSDelayTap
+srk2 = ReadUIConfig("输入框2")
+DSDelayTap = CInt (srk2)
+
+'''相似度
+Dim srk_xsd
+Dim xsd
+srk_xsd = ReadUIConfig("输入框_xsd")
+xsd = CInt(srk_xsd)
+
+
+'''是否自动打车
+Dim dxk_raid
+dxk_raid = ReadUIConfig("多选框_Raid")
+'''打车次数
+Dim xlk_raid
+Dim RaidCnt
+xlk_raid = ReadUIConfig("下拉框_Raid")
+RaidCnt = xlk_raid + 1
+
+
+
+
+Dim 屏幕DPI
+屏幕DPI=Device.GetDPI()
+'Showmessage "DPI是"&屏幕DPI
+'Delay 500
+
+
+Dim screenX
+Dim screenY
+screenX = GetScreenX()
+screenY = GetScreenY()
+ShowMessage "屏幕分辨率" & screenX & "*" & screenY
+Delay 500
+
+If screenX <> 1280 Or screenY <> 720 Then 
+	ShowMessage "屏幕分辨率设置错误！"
+	Delay 1000
+	ShowMessage "不能运行脚本！"
+	Delay 1000
+	ShowMessage "请查看相关说明或群里请教大佬"
+	Delay 1000
+	EndScript 
+End If 
+
+ShowMessage "分辨率通过验证，开始脚本"
+
+
+
+If dxk_raid = True Then 
+	Delay 500
+	ShowMessage "开启自动打车！"
+	Delay 500
+	Thread.Start(AutoReflash)
+End If
+
+
+
+/*************主流程***************/
+Rem start
+
+
+If dxk_raid = True Then 
+	AutoRaid 
+	Delay 100
+End If
+
+
+DoAutoDS 
+
+
+Delay 500
+Goto start
+/*************主流程***************/
+
+
+
+
+
+
+
+''''''''''''''''自动FEVER子程序
+Sub DoFever()
+Dim xlk1
+xlk1 = ReadUIConfig("下拉框1")
+Dim zhz
+
+
+Dim srk1
+Dim MouseDelay
+srk1 = ReadUIConfig("输入框1")
+MouseDelay = CInt(srk1)
+
+
+
+/////计算频率之类的
+Dim srk_pl
+Dim pl
+srk_pl = ReadUIConfig("输入框_pl")
+pl = CInt(srk_pl)
+
+Dim srk_last
+Dim FeverLast
+srk_last = ReadUIConfig("输入框_Last")
+FeverLast = CInt(srk_last) * 1000
+
+'''
+Dim TotalCnts = pl * CInt(srk_last)
+Dim FeverJianGe = 1000 / pl
+
+
+ShowMessage "判断FEVER值"
+For 15
+	FindStr(730,390,834,444,"FEVER","00FFAE-101010",xsd,intX,intY)
+	If intX > -1 And intY > -1 Then 
+		ShowMessage "FEVER达到100%！"
+		Delay MouseDelay
+		ShowMessage "共点击"&TotalCnts&"次"
+'		For Cnts
+'			Tap 1080, 634
+'			Delay FeverJianGe
+'			Tap 1056, 501
+'			Delay FeverJianGe
+'			Tap 1038, 353
+'			Delay FeverJianGe
+'			Tap 1053, 214
+'			Delay FeverJianGe
+'			Tap 1075, 74
+'			Delay FeverJianGe
+'		Next
+'		Exit Sub
+
+
+		Dim Cnts = 0
+		
+		While Cnts < TotalCnts
+			If dxk_f1 = True Then 
+				Tap 1080, 634
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f2 = True Then 
+				Tap 1056, 501
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f3 = True Then 
+				Tap 1038, 353
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f4 = True Then 
+				Tap 1053, 214
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+			If dxk_f5 = True Then 
+				Tap 1075, 74
+				Cnts = Cnts + 1
+				Delay FeverJianGe
+			End If
+		Wend 
+
+		
+	End If
+	Delay 200
+Next
+	
+
+End Sub
+
+
+
+
+
+''''''''自动DS子程序
+Sub DoAutoDS
+	
+If dxk1 = True Then 
+//	FindStr(1092,609,1143,661,"1号攻击","FCFCFC-101010|E7E7E7-101010",0.9,intX,intY)
+	If CmpColorEx("1149|603|FEFEFE-101010,1151|600|1B1313-101010,1150|594|5D5050-101010",xsd) = 1 Then
+		Tap 1114,632
+		Delay DSDelayTap
+		Tap 1098, 348
+		Delay 1000
+		Call DoFever()
+		ShowMessage "退出FEVER"
+	Else 
+		Delay 100
+	End If
+End If
+
+
+
+If dxk2 = True Then 
+//	FindStr(1066,467,1112,516,"2号攻击","FCFCFC-101010|E7E7E7-101010",0.9,intX,intY)
+	If CmpColorEx("1149|603|FEFEFE-101010,1125|458|110D0D-101010,1126|454|5D5050-101010",xsd) = 1 Then
+		Tap 1090,492
+		Delay DSDelayTap
+		Tap 1098, 348
+		Delay 1000
+		Call DoFever()
+		ShowMessage "退出FEVER"
+	Else 
+		Delay 100
+	End If
+End If
+
+
+
+If dxk3 = True Then 
+//	FindStr(1058,337,1092,379,"3号攻击","FCFCFC-101010|E7E7E7-101010",0.9,intX,intY)
+//	If intX > -1 And intY > -1 Then
+	If CmpColorEx("1113|328|FFFFFF-101010,1116|327|1E1717-101010,1117|323|5D5050-101010", xsd) = 1 Then 
+		Tap 1077,360
+		Delay DSDelayTap
+		Tap 1098, 348
+		Delay 1000
+		Call DoFever()
+		ShowMessage "退出FEVER"
+	Else 
+		Delay 100
+	End If
+End If
+
+
+
+
+If dxk4 = True Then 
+//	FindStr(1072,201,1111,246,"4号攻击","FCFCFC-101010|E7E7E7-101010",0.9,intX,intY)
+	If CmpColorEx("1131|202|FFFFFF-101010,1132|196|201717-101010,1134|194|5D5050-101010", xsd) = 1 Then 
+		Tap 1099,228
+		Delay DSDelayTap
+		Tap 1098, 348
+		Delay 1000
+		Call DoFever()
+		ShowMessage "退出FEVER"
+	Else 
+		Delay 100
+	End If
+End If
+
+
+If dxk5 = True Then 
+//	FindStr(1090,63,1136,114,"5号攻击","FCFCFC-101010|E7E7E7-101010",0.9,intX,intY)
+	If CmpColorEx("1158|64|F9F9F9-101010,1158|57|1E1616-101010,1161|56|5C4F4F-101010",xsd) = 1 Then
+		Tap 1121,82
+		Delay DSDelayTap
+		Tap 1098, 348
+		Delay 1000
+		Call DoFever()
+		ShowMessage "退出FEVER"
+	Else 
+		Delay 100
+	End If
+End If	
+	
+	
+	
+End Sub
+
+
+
+
+
+'''''''Raid界面自动刷新的线程
+Sub AutoReflash
+While 1
+'	FindPic 368,55,403,118,"Attachment:Raid界面门票图.png","000000",0,0.9,intX,intY
+	FindPic 421,659,439,678,"Attachment:Raid界面更新标志.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 438, 638
+		Delay 1000
+		ShowMessage "自动刷新副本列表"
+	Else 
+		ShowMessage "没有发现Raid门票图标"
+	End If
+	Delay 15000
+Wend
+End Sub
+
+
+/*****************自动打车*****************/
+Sub AutoRaid
+
+Dim StartX = 497
+Dim StartY = 18
+Dim EndX = 966
+Dim EndY = 116
+
+Dim nx1,ny1,nx2,ny2
+
+
+Dim LastX = StartX
+
+'''''通过判断是否能找到Raid界面的门票图，来判断是否在Raid界面
+'FindPic 368,55,403,118,"Attachment:Raid界面门票图.png","000000",0,0.9,intX,intY
+	FindPic 421,659,439,678,"Attachment:Raid界面更新标志.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then 
+	
+	''''副本胜利	
+	FindPic 490,228,1109,486,"Attachment:Raid通关.png","000000",0,xsd,intX,intY
+	If intX > -1 And intY > -1 Then 
+		ShowMessage "安全下车了！"
+		Tap intX, intY
+		Delay 2000
+	End If
+	'''副本失败
+	FindPic 490,228,1109,486,"Attachment:Raid副本失败.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY
+		Delay 2000
+	End If
+	
+	
+	
+	''''''判断是否有门票
+	ShowMessage "判断门票"
+	Delay 500
+	FindStr(368,54,401,77,"门票0","FFFFFF-101010",0.9,intX,intY)
+	If intX > -1 And intY > -1 Then		
+		ShowMessage "门票为0"
+		Delay 3000
+	Else 
+		ShowMessage "门票不为0"
+		Delay 500
+		
+		
+		'''一共循环滑动屏幕N次
+		For 2
+			
+			While LastX < EndX		'这个while是为了遍历寻找20人
+			
+				FindStr(LastX,StartY,EndX,EndY,"20人","999999-101010",xsd,intX,intY)	'判断后面是否显示/20人
+				If intX > -1 And intY > -1 Then
+					ShowMessage "发现车子"
+					TracePrint LastX
+					LastX = intX + 150
+					Delay 300
+					nx1 = intX + 100					
+					ny1 = intY + 350					
+					nx2 = intX + 141
+					ny2 = intY + 400
+					
+					TracePrint "nx1="&nx1
+					TracePrint "ny1="&ny1
+					TracePrint "nx2="&nx2
+					TracePrint "ny2="&ny2
+					
+					FindStr(nx1,ny1,nx2,ny2,"0","00C4FF-101010",0.9,intX,intY)	//判断次数是否为0			
+					If intX > -1 And intY > -1 Then
+						Tap intX, intY
+						ShowMessage "搭车"
+					Else 
+						ShowMessage "车子已经打过"
+					End If
+				Else'如果找不到车子 
+					Swipe 1000, 300, 780, 300
+					Goto SkipSearchRaid
+					ShowMessage "找不到车子，滑动一下屏幕"
+				End If
+				
+				Delay 1000		
+				
+			Wend
+			
+			Rem SkipSearchRaid
+			Swipe 1000, 300, 900, 300
+			ShowMessage "再次查找是否有车子"
+			Delay 1000
+		Next
+		
+		
+		
+		
+			
+	End If
+	
+End If
+
+
+'''''如果在战斗中，那么跳过一些判断，可以少占用一部分资源
+If CmpColorEx("32|708|2A2A2A-101010,36|715|121212-101010,55|715|434343-101010,1229|715|636363-101010,1254|714|091811", 0.9) = 1 Then 
+
+'	ShowMessage "在战斗中..."
+
+	
+Else 
+
+'	ShowMessage "没在战斗"
+	
+		''''战斗失败
+	FindPic 489,377,543,429,"Attachment:Raid战斗失败.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 901, 60
+		Delay 1000
+	End If
+		
+	''''战斗胜利
+	FindPic 416,314,473,368,"Attachment:Raid战斗失败.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY
+		Delay 1000
+	End If
+	
+	'''进入战斗
+	FindPic 383,70,420,111,"Attachment:Raid战斗图标.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then 
+	
+		Dim Xbak = intX
+		Dim Ybak = intY
+		'''进入战斗了，先判断BOSS是什么属性的
+		FindMultiColor 423, 220, 452, 495, "0000FF-101010","-3|2|0000F9-101010,-5|2|151515-101010,-1|2|151515-101010,0|4|0000FF-101010", 0, 0.9, intX, intY
+		If intX > -1 And intY > -1 Then 		
+			If CmpColor(intX + 6, intY + 28, "250CFE-101010", 0.9) > -1 Then 	
+				ShowMessage "BOSS是火属性，队伍选择"&BossHuoTeam&"号"
+				TeamSelect BossHuoTeam
+			ElseIf CmpColor(intX + 6, intY + 28, "B54B40-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是水属性，队伍选择"&BossShuiTeam&"号"
+				TeamSelect BossShuiTeam
+			ElseIf CmpColor(intX + 6, intY + 28, "107619-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是木属性，队伍选择"&BossMuTeam&"号"
+				TeamSelect BossMuTeam
+			ElseIf CmpColor(intX + 6, intY + 28, "36799B-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是光属性，队伍选择"&BossGuangTeam&"号"
+				TeamSelect BossGuangTeam
+			ElseIf CmpColor(intX + 6, intY + 28, "5F3547-101010", 0.9) > -1 Then
+				ShowMessage "BOSS是暗属性，队伍选择"&BossAnTeam&"号"
+				TeamSelect BossAnTeam
+			End If
+		End If	
+	
+	
+		ShowMessage "进入战斗"
+		TracePrint "点击坐标："&Xbak&"，"&Ybak
+		Tap Xbak, Ybak
+		Delay 1000
+	End If
+	
+	''''结算确认，点击OK按键
+	FindPic 1078,338,1107,380,"Attachment:Raid结算确认.png","000000",0,xsd,intX,intY
+	If intX > -1 And intY > -1 Then
+		tap intX,intY
+	End If
+	
+	'''宝箱
+	FindPic 395,325,424,351,"Attachment:发现箱子.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 681, 387
+		Delay 1000
+		
+	End If
+	'''宝箱开出来的OK
+	FindPic 1055,338,1082,377,"Attachment:开箱子的OK.png","000000",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then 
+		Dim Name
+	 	Name = Time()
+'	 	If Dir.Exist("/sdcard/DestineChild/") = 0 Then 
+'			ShowMessage "目录不存在"
+'			Delay 500
+'			If Dir.Create("/sdcard/DestineChild/") = True Then 
+'				ShowMessage "目录创建成功！！"
+'			Else 
+'				ShowMessage "目录创建失败！！"
+'			End If
+'			Delay 500
+'		End If
+		SnapShot "/sdcard/DCIM/" & CStr(Name) & ".png"
+'		SnapShot "/sdcard/DestineChild/" & CStr(Name) & ".png"
+		Delay 5000
+		tap intX,intY
+	End If
+	
+End If
+
+
+
+
+
+
+	
+
+	
+	
+	
+End Sub
+
+
+/***********************队伍选择****************************/
+Sub TeamSelect(number)
+
+Dim zhuanhua
+Dim ocrchar
+
+'''一直循环判断，直到选择到指定队伍
+While 1
+
+	''获取当前的队伍编号
+	ocrchar = Ocr(173, 559, 203, 589, "00C4FF-101010", 0.9)
+	
+	Select Case ocrchar
+		Case "Team1"
+		zhuanhua = 1
+		Case "Team2"
+		zhuanhua = 2
+		Case "Team3"
+		zhuanhua = 3
+		Case "Team4"
+		zhuanhua = 4
+		Case "Team5"
+		zhuanhua = 5
+		Case "Team6"
+		zhuanhua = 6
+		Case "Team7"
+		zhuanhua = 7
+		Case "Team8"
+		zhuanhua = 8
+		Case "Team9"
+		zhuanhua = 9
+	End Select
+	
+	'ShowMessage "当前是" & zhuanhua & "号队伍!"
+	Delay 500
+	
+	If zhuanhua < number Then 
+		Tap 139,17
+		Delay 300
+	ElseIf zhuanhua = number Then
+		ShowMessage "已经选择到"&number&"号队伍"
+		Exit Sub
+	Else 
+		Tap 139, 706
+		Delay 300
+	End If
+
+Wend
+
+
+
+End Sub
