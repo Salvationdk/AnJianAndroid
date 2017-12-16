@@ -13,9 +13,6 @@ Dim intX,intY
 
 Dim dxk1,dxk2,dxk3,dxk4,dxk5
 
-Log.Open 
-TracePrint GetTempDir()
-
 /****************
 定义一个任务序号
 0=什么都不做
@@ -370,6 +367,8 @@ Dim RiChangFuBenStart = 0
 If Daily_En = True Then 
     ShowMessage "开启日常模式" & Chr(10) & "请先行选择好当前队伍" 
     TracePrint "开启日常模式"
+    Log.Open 
+	TracePrint GetTempDir()
     Delay 1000
 End If
 
