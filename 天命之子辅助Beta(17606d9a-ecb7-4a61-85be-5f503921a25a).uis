@@ -1,9 +1,39 @@
-Function fdc
+'自动打车
+Function fdc	
+	UIP.SetAttribute "多选框_Raid2", UIP.GetAttribute("多选框_Raid")
     UIP.SetAttribute "多选框_AutoSR_En", {"选中":false}
+    UIP.SetAttribute "多选框_PVP_Lose", {"选中":false}
+    UIP.SetAttribute "多选框_Daily", {"选中":false}
 End Function
 
+'自动打车2
+Function fdc2
+	UIP.SetAttribute "多选框_Raid", UIP.GetAttribute("多选框_Raid2")
+    UIP.SetAttribute "多选框_AutoSR_En", {"选中":false}
+    UIP.SetAttribute "多选框_PVP_Lose", {"选中":false}
+    UIP.SetAttribute "多选框_Daily", {"选中":false}
+End Function
 
+'自动SR
 Function fsr
     UIP.SetAttribute "多选框_Raid", {"选中":false}
+    UIP.SetAttribute "多选框_Raid2", {"选中":false}
+    UIP.SetAttribute "多选框_PVP_Lose", {"选中":false}
+    UIP.SetAttribute "多选框_Daily", {"选中":false}
 End Function
 
+'PVP自杀
+Function fpvp
+    UIP.SetAttribute "多选框_Raid", {"选中":false}
+    UIP.SetAttribute "多选框_Raid2", {"选中":false}
+    UIP.SetAttribute "多选框_AutoSR_En", {"选中":false}
+    UIP.SetAttribute "多选框_Daily", {"选中":false}
+End Function
+
+'PVP自杀
+Function fdaily
+    UIP.SetAttribute "多选框_Raid", {"选中":false}
+    UIP.SetAttribute "多选框_Raid2", {"选中":false}
+    UIP.SetAttribute "多选框_AutoSR_En", {"选中":false}
+    UIP.SetAttribute "多选框_PVP_Lose", {"选中":false}
+End Function

@@ -233,6 +233,24 @@ Dim SRScreenShotMode = ReadUIConfig("下拉框_SR_ScreenShot")	''截图的选项：0是5星
 If dxk_raid = True Then 
 	Delay 500
 	ShowMessage "开启自动打车！"
+	
+	'这里是DS的选择
+	dxk1 = ReadUIConfig("多选框_dcss1")
+	dxk2 = ReadUIConfig("多选框_dcss2")
+	dxk3 = ReadUIConfig("多选框_dcss3")
+	dxk4 = ReadUIConfig("多选框_dcss4")
+	dxk5 = ReadUIConfig("多选框_dcss5")
+	
+	'这里是FEVER的选择
+	dxk_f1 = ReadUIConfig ("多选框_dcf1")
+	dxk_f2 = ReadUIConfig ("多选框_dcf2")
+	dxk_f3 = ReadUIConfig ("多选框_dcf3")
+	dxk_f4 = ReadUIConfig ("多选框_dcf4")
+	dxk_f5 = ReadUIConfig ("多选框_dcf5")
+
+	
+	
+	
 '	Delay 500
 '	Thread.Start(AutoReflash)
 End If
@@ -245,8 +263,36 @@ End If
 
 
 
+'''''PVP自杀模式
+Dim PVPLose = ReadUIConfig("多选框_PVP_Lose")
+If PVPLose = True Then 
+	ShowMessage "开启了PVP自杀输分模式"
+	Delay 500
+End If
+
+
+'''''日常模式
+Dim Daily_En = ReadUIConfig("多选框_Daily")
+Dim DailySW = 0		''这个变量记录了当前执行到哪个日常。0-2是无尽的挑战，3是皮肤塔，4是活动本
+
+If Daily_En = True Then 
+	ShowMessage "开启日常模式" & Chr(10) & "请先行选择好当前队伍"
+'	Log.Open
+	TracePrint GetTempDir()
+	Delay 1000
+End If
+
+
+
+
+
+Dim AutoDSEn = True
+
+
+
 /***************************主流程******************************/
 Rem start
+
 
 '''如果开启了自动打车
 If dxk_raid = True Then 
@@ -258,15 +304,32 @@ End If
 If dxk_sr_en = True Then 
 	AutoSR 
 	Delay 300
+	
+	If dxk_sr_autofever = True Then ''如果开了AutoFEVER，那么就关闭脚本的AutoDS
+		AutoDSEn = False
+	End If
+	
+End If
+
+'''PVP自杀
+If PVPlose = True Then 
+	PVPLoseMode
+	Delay 300
+	AutoDSEn = False	
 End If
 
 
-'''如果没有开启SR模式，或者SR模式下的AutoFEVER没打开，那么开启自动DS和FEVER的功能
-If dxk_sr_en = False Or dxk_sr_autofever = False Then 
-	DoAutoDS 
+'''自动ED皮肤活动本
+If Daily_En = True Then 
+	DailyMain 
+	Delay 100
 End If
 
 
+''''''自动DS和FEVER
+If AutoDSEn = True Then 
+	DoAutoDS
+End If
 
 Delay 500
 Goto start
@@ -290,7 +353,8 @@ Dim MouseDelay
 srk1 = ReadUIConfig("输入框1")
 MouseDelay = CInt(srk1)
 
-
+'''点击屏幕加速动画
+Tap 538, 1649 + Yoffset		
 
 /////计算频率之类的
 Dim srk_pl
@@ -361,7 +425,22 @@ End Sub
 
 /***********自动DS子程序*************/
 Sub DoAutoDS
-	
+
+
+''''如果没在战斗中就跳出
+'If Battle() = False Then 
+'	Exit Sub
+'End If
+
+'''如果没开启AutoSkill，就点一下开启
+CvtStr = StrOffset("941|140|867E86-101010,956|148|847D83-101010,947|162|857D82-101010,948|150|201619-101010,943|167|2D2121-101010", 0 ,Yoffset)
+If CmpColorEx(CvtStr, 0.9) = 1 Then 
+	TracePrint "没有开启AutoSkill"
+	Tap 1004, 137 + Yoffset
+	Exit Sub
+End If
+
+
 'KeepCapture 
 
 	If dxk1 = True Then 
@@ -369,7 +448,9 @@ Sub DoAutoDS
 		If CmpColorEx(CvtStr, xsd) = 1 Then 
 			Tap 131,1694 + Yoffset
 			Delay DSDelayTap
-			Tap 538,1649 + Yoffset
+			Tap 538, 1649 + Yoffset
+			Delay 50
+			Tap 538, 1649 + Yoffset			
 			Delay 1000
 			Call DoFever()
 			ShowMessage "退出FEVER"
@@ -385,7 +466,9 @@ Sub DoAutoDS
 		If CmpColorEx(CvtStr, xsd) = 1 Then 
 			Tap 343,1642 + Yoffset
 			Delay DSDelayTap
-			Tap 538,1649 + Yoffset
+			Tap 538, 1649 + Yoffset
+			Delay 50
+			Tap 538, 1649 + Yoffset			
 			Delay 1000
 			Call DoFever()
 			ShowMessage "退出FEVER"
@@ -401,7 +484,9 @@ Sub DoAutoDS
 		If CmpColorEx(CvtStr, xsd) = 1 Then
 			Tap 552,1615 + Yoffset
 			Delay DSDelayTap
-			Tap 538,1649 + Yoffset
+			Tap 538, 1649 + Yoffset
+			Delay 50
+			Tap 538, 1649 + Yoffset		
 			Delay 1000
 			Call DoFever()
 			ShowMessage "退出FEVER"
@@ -418,7 +503,9 @@ Sub DoAutoDS
 		If CmpColorEx(CvtStr, xsd) = 1 Then
 			Tap 739,1638 + Yoffset
 			Delay DSDelayTap
-			Tap 538,1649 + Yoffset
+			Tap 538, 1649 + Yoffset
+			Delay 50
+			Tap 538, 1649 + Yoffset		
 			Delay 1000
 			Call DoFever()
 			ShowMessage "退出FEVER"
@@ -433,7 +520,9 @@ Sub DoAutoDS
 		If CmpColorEx(CvtStr, xsd) = 1 Then
 			Tap 952,1679 + Yoffset
 			Delay DSDelayTap
-			Tap 538,1649 + Yoffset
+			Tap 538, 1649 + Yoffset
+			Delay 50
+			Tap 538, 1649 + Yoffset
 			Delay 1000
 			Call DoFever()
 			ShowMessage "退出FEVER"
@@ -462,6 +551,21 @@ Sub DoAutoDS
 		If CmpColorEx(CvtStr, xsd) = 1 Then
 			Tap 548, 1512 + Yoffset
 			dxk_raid = True
+			
+			'这里是DS的选择
+			dxk1 = ReadUIConfig("多选框_dcss1")
+			dxk2 = ReadUIConfig("多选框_dcss2")
+			dxk3 = ReadUIConfig("多选框_dcss3")
+			dxk4 = ReadUIConfig("多选框_dcss4")
+			dxk5 = ReadUIConfig("多选框_dcss5")
+			
+			'这里是FEVER的选择
+			dxk_f1 = ReadUIConfig("多选框_dcf1")
+			dxk_f2 = ReadUIConfig("多选框_dcf2")
+			dxk_f3 = ReadUIConfig("多选框_dcf3")
+			dxk_f4 = ReadUIConfig("多选框_dcf4")
+			dxk_f5 = ReadUIConfig("多选框_dcf5")
+	
 			Delay 3000
 			AutoRaid 
 		End If 
@@ -470,6 +574,9 @@ Sub DoAutoDS
 	End If
 	
 'ReleaseCapture	
+
+Delay 500
+
 
 End Sub
 /***********自动DS子程序*************/
@@ -483,12 +590,16 @@ End Sub
 /*****************自动打车*****************/
 Sub AutoRaid
 
-'956,747,1041,1261
+
+''''如果在战斗中就跳出
+If Battle() = True Then 
+	Exit Sub
+End If
 
 Dim StartX = 975
 Dim StartY = 752 + Yoffset
 Dim EndX = 1052
-Dim EndY = 1261 + Yoffset
+Dim EndY = 1320 + Yoffset
 
 Dim nx1,ny1,nx2,ny2	'这组坐标用来判断挑战次数
 Dim lx1,ly1,lx2,ly2 '这组坐标用来判断BOSS等级
@@ -514,7 +625,7 @@ If CmpColorEx(CvtStr,0.9) = 1 Then
 	
 	
 	''''副本胜利	
-	FindMultiColor 508,837 + Yoffset,518,853 + Yoffset,"0B0908-101010","-7|-8|47F1DE-101010,27|19|201E1C-101010,53|-7|45EED1-101010,60|22|28D45B-101010,68|21|11100F-101010",0,0.9,intX,intY
+	FindMultiColor 508,837 + Yoffset,518,1620 + Yoffset,"0B0908-101010","-7|-8|47F1DE-101010,27|19|201E1C-101010,53|-7|45EED1-101010,60|22|28D45B-101010,68|21|11100F-101010",0,0.9,intX,intY
 	If intX > -1 And intY > -1 Then 
 		ShowMessage "安全下车了！"
 		Tap intX, intY
@@ -548,7 +659,7 @@ If CmpColorEx(CvtStr,0.9) = 1 Then
 			
 			While LastY < EndY		'这个while是为了遍历寻找20人			
 			
-				TracePrint StartX&","&LastY&","&EndX&","&EndY
+//				TracePrint StartX&","&LastY&","&EndX&","&EndY
 				
 				'FindStr(StartX,LastY,EndX,EndY,"20人","999999-101010",xsd,intX,intY)	'判断后面是否显示/20人
 				'FindMultiColor StartX,LastY,EndX,EndY,"FFFFFF","0|-4|FFFFFF,-6|1|FFFFFF,6|1|FFFFFF,0|7|FFFFFF,-9|16|FFFFFF,10|17|FFFFFF,-14|23|FFFFFF,14|23|FFFFFF,-8|1|222222-101010",0,0.9,intX,intY
@@ -567,14 +678,16 @@ If CmpColorEx(CvtStr,0.9) = 1 Then
 						lx2 = intX - 827
 						ly2 = intY + 160
 					ElseIf fbl = 2 Then	'720*1280
-						lx1 = intX - 643
-						ly1 = intY + 31
-						lx2 = intX - 557
-						ly2 = intY + 106
+						lx1 = intX/1.5 - 643
+						ly1 = intY/1.5 + 31
+						lx2 = intX/1.5 - 557
+						ly2 = intY/1.5 + 103
 					End If
 					
-					
-					
+					''''''调试调试调试
+					'TracePrint "20人："&intX&","&intY
+					'TracePrint "截图："&lx1&","&ly1&","&lx2&","&ly2						
+					'SnapShot "/sdcard/DestinyChild/aa.png",lx1, ly1, lx2, ly2
 					
 					'''''临时测试用，到时候删除
 					''先找人形的图标
@@ -698,7 +811,7 @@ If CmpColorEx(CvtStr,0.9) = 1 Then
 			
 '			Rem SkipSearchRaid
 			If fbl = 2 Then 
-				Swipe 550, 1500, 550, 1350
+				Swipe 550, 1500, 550, 1280
 			Else 
 				Swipe 550, 1500 + Yoffset, 550, 1280 + Yoffset
 			End If
@@ -751,14 +864,41 @@ Else
 	Delay 50
 		
 	''''战斗胜利
-	FindMultiColor 552, 641 + Yoffset, 585, 672 + Yoffset, "151012-101010", "-34|-11|97E6EC-101010,-38|43|416E8E-101010,27|-26|95E6EC-101010,27|37|3E6A8B-101010,59|74|120D10-101010", 0, 0.9, intX, intY	
-	If intX > -1 And intY > -1 Then 
-		ShowMessage "战斗胜利"
+'	FindMultiColor 552, 641 + Yoffset, 585, 672 + Yoffset, "151012-101010", "-34|-11|97E6EC-101010,-38|43|416E8E-101010,27|-26|95E6EC-101010,27|37|3E6A8B-101010,59|74|120D10-101010", 0, 0.9, intX, intY	
+'	If intX > -1 And intY > -1 Then 
+'		ShowMessage "战斗胜利"
+'		Tap 543, 992 + Yoffset		
+'		Delay 1000
+'	End If
+'	Delay 50
+	
+	''''战斗胜利2
+	FindMultiColor 580,662 + Yoffset,614,695 + Yoffset,"416E8F-101010","-22|-27|1D1519-101010,-1|-32|89DAEA-101010,-96|19|447191-101010,-290|63|477494-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		ShowMessage "战斗胜利2"
 		Tap 543, 992 + Yoffset		
 		Delay 1000
 	End If
 	Delay 50
 	
+	''''战斗胜利3
+	CvtStr = StrOffset("539|657|8EDFEB-101010,531|690|447191-101010,551|678|100C0E-101010,502|689|477494-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		ShowMessage "战斗胜利3"
+		Tap 543, 992 + Yoffset		
+		Delay 1000
+	End If
+	Delay 50
+	
+	'''战斗胜利4
+	CvtStr = StrOffset("441|1340|D9D8D9-101010,434|1346|D9D9D9-101010,447|1346|E1E0E1-101010,441|1352|DEDDDE-101010,425|1369|DAD9D9-101010,430|1364|D9D8D9-101010,455|1365|DCDADB-101010,456|1369|DAD9D9-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr, 0.9) = 1 Then 
+		ShowMessage "战斗胜利4"
+		Tap 543, 992 + Yoffset		
+		Delay 1000
+	End If
+	Delay 50
+
 	'''进入战斗
 	FindMultiColor 894, 522 + Yoffset, 1006, 794 + Yoffset, "00EAFF-101010", "1|7|00001A-101010,0|13|00BBFF-101010,5|23|0060E0-101010,1|48|000066-101010", 0, 0.9, intX, intY	
 	If intX > -1 And intY > -1 Then 
@@ -1078,10 +1218,17 @@ If CmpColorEx(CvtStr, 0.9) = 1 Then
 			ny2 = intY + 200
 			
 			''BOSS等级坐标区间
-			lx1 = intX - 975
-			ly1 = intY + 40
-			lx2 = intX - 820
-			ly2 = intY + 160
+			If fbl = 1 Then '1080*1920
+				lx1 = intX - 982
+				ly1 = intY + 40
+				lx2 = intX - 827
+				ly2 = intY + 160
+			ElseIf fbl = 2 Then	'720*1280
+				lx1 = intX/1.5 - 643
+				ly1 = intY/1.5 + 31
+				lx2 = intX/1.5 - 557
+				ly2 = intY/1.5 + 103
+			End If
 			
 			''是否满人坐标区间
 			fx1 = intX - 55
@@ -1099,6 +1246,20 @@ If CmpColorEx(CvtStr, 0.9) = 1 Then
 				Case 2
 				hpx = intX - 318
 			End Select
+			
+			
+			
+			
+			'''''临时测试用，到时候删除
+			''先找人形的图标
+			FindMultiColor intX - 80 ,intY - 20,intX - 45 ,intY + 5,"FFFFFF-101010","-6|6|FFFFFF-101010,7|6|FFFFFF-101010,-14|28|FFFFFF-101010,15|28|FFFFFF-101010",0,0.9,intX,intY
+			If intX > -1 And intY > -1 Then
+				Dim tmpcnt
+				tmpcnt = SmartOcr(intX + 17 , intY - 5, intX + 60, intY + 35, "FFFFFF-101010")
+				ShowMessage "已经有"&tmpcnt&"人上车"
+				Delay 500
+			End If
+			
 			
 			''''判断车子是不是满20人了
 			FindStr(fx1,fy1,fx2,fy2,"满20人","FFFFFF-101010",0.9,intX,intY)
@@ -1405,4 +1566,629 @@ Function StrOffset(str, x, y)
 	StrOffset = Result	
 	
 	
+End Function
+
+
+
+
+
+
+
+/***********PVP自杀模式*************/
+Sub PVPLoseMode
+	KeepCapture 
+	
+	FindMultiColor 875,468 + Yoffset,969,534 + Yoffset,"000000-101010","-1|-6|FFFFFF-101010,-9|8|FFFFFF-101010,0|18|000000-101010,-1|24|FFFFFF-101010,7|19|FFFFFF-101010,9|10|FFFFFF-101010,7|-1|FFFFFF-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then	
+	
+		ShowMessage "没门票了，等30秒继续"	
+		Delay 30000
+	
+	Else
+		
+		'''''找到挑战按钮
+		FindMultiColor 823,862 + Yoffset,855,1269 + Yoffset,"00D4FF-101010","10|5|006DDB-101010,24|56|00CEFC-101010,199|67|0065CA-101010,115|70|0065CA-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap intX + 102, intY + 35
+			Delay 200
+		End If
+		
+		'''''正在战斗，点击Escape
+		FindMultiColor 356,3 + Yoffset,582,64 + Yoffset,"FFFFFF-101010","-4|4|FFFFFF-101010,6|13|FFFFFF-101010,10|-2|FFFFFF-101010,14|4|FFFFFF-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap 553, 264 + Yoffset
+			Delay 200
+		End If
+		
+'		CvtStr = StrOffset("437|25|FFFFFF-101010,434|29|FFFFFF-101010,444|38|FFFFFF-101010,448|23|FFFFFF-101010,451|29|FFFFFF-101010", 0 ,Yoffset)
+'		If CmpColorEx(CvtStr,0.9) = 1 Then
+'			Tap 553, 264 + Yoffset
+'			Delay 200
+'		End If
+		
+		'''''点击Escape后的确认按键
+		CvtStr = StrOffset("261|1734|494139-101010,266|1744|1B42DE-101010,275|1749|02055E-101010,491|1804|1C44E2-101010,496|1810|010156-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 368, 1776 + Yoffset
+			Delay 200
+		End If
+		
+		'''''战斗失败
+		CvtStr = StrOffset("362|721|000000-101010,355|718|0000B5-101010,404|731|000000-101010,411|723|0000B5-101010,667|720|000000-101010,658|726|0000B5-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 553, 264 + Yoffset
+			Delay 200
+		End If
+		
+		'''''战斗失败点确认
+		CvtStr = StrOffset("421|1493|584F46-101010,428|1500|00DCFE-101010,438|1504|0080EB-101010,647|1562|00DBFD-101010,656|1570|007FEB-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr, 0.9) = 1 Then 
+			Tap 546, 1533 + Yoffset
+			Delay 200
+		End If
+		
+		
+		
+		
+		'''''门票不足的提示
+		CvtStr = StrOffset("418|1033|564E44-101010,423|1040|00DBFD-101010,433|1046|0083EC-101010,645|1105|00DFFE-101010,652|1109|007EEB-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 540, 1072 + Yoffset
+			Delay 1000
+		End If
+			
+			
+		'''''掉段
+		CvtStr = StrOffset("419|1352|544C42-101010,424|1358|00DCFE-101010,433|1361|007FEB-101010,648|1422|00DCFE-101010,654|1427|0080EB-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 539, 1398 + Yoffset
+			Delay 1000
+		End If
+			
+			
+			
+			
+	End If
+
+	ReleaseCapture
+	
+End Sub
+
+
+
+
+
+
+
+
+
+/*******************************************
+		日常主流程 
+*******************************************/
+Sub DailyMain
+
+
+
+''''如果在战斗中就跳出
+If Battle() = True Then 
+	Exit Sub
+End If
+
+
+If DailySW < 5 Then 
+
+	KeepCapture	
+
+	ED1 
+	ED2 
+	ED3 
+	AutoSkin
+	HuoDongFuBen	
+
+	''如果弹出网络连接问题
+	CvtStr = StrOffset("63|696|333333-101010,86|705|00C4FF-101010,123|719|333333-101010,635|1071|675C52-101010,631|1082|00E0FE-101010,634|1092|0080EB-101010,857|1150|007EEB-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 740, 1118 + Yoffset
+		Delay 1000
+	End If
+
+	ReleaseCapture
+	
+ElseIf DailySW = 5 Then
+
+	AfterDaily 
+
+'ElseIf DailySW = 6
+'	Daily_En = False
+
+End If	
+		
+End Sub
+
+
+//////////选择ED1，3星无尽挑战
+Sub ED1
+
+If DailySW = 0 Then 
+	
+
+	'''点击夜世界
+	FindMultiColor 921,1444 + Yoffset,951,1468 + Yoffset,"F80F7C-101010","10|43|93EDF5-101010,-34|59|FF00BF-101010,92|87|FF00AD-101010,137|-27|007EFE-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY + Yoffset
+		Exit Sub
+	End If
+	'''看见回主界面的按钮
+	FindMultiColor 968,67 + Yoffset,1002,101 + Yoffset,"6A5F5E-101010","0|-24|00C7FF-101010,-23|-19|00CEFF-101010,44|13|0A0908-101010,33|30|00A4FF-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 760,1249 + Yoffset
+		Exit Sub
+	End If
+	
+	'''点选3星无尽挑战
+	FindMultiColor 15,886 + Yoffset,69,930 + Yoffset,"B2DBF7-101010","6|8|02060C-101010,821|798|7895AA-101010,903|865|091018-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 529, 1043 + Yoffset
+		Exit Sub
+	End If
+
+	'''勾选连续战斗
+	FindMultiColor 175,885 + Yoffset,190,902 + Yoffset,"322C26-101010","-16|-15|61584D-101010,-6|3|171411-101010,16|16|4E453C-101010,17|16|4E453C-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY + Yoffset
+		Exit Sub
+	End If
+
+	''''如果已经勾选连续战斗就开始对决
+	FindMultiColor 175,885 + Yoffset,190,902 + Yoffset,"008DF4-101010","-16|-15|8B7E6F-101010,-6|3|352F28-101010,16|16|00B6FD-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 548, 870 + Yoffset
+		Exit Sub
+	End If
+
+	''''战斗结算
+	FindMultiColor 318,786 + Yoffset,347,820 + Yoffset,"0061FF-101010","18|-13|1E222F-101010,68|1|0060FF-101010,107|-1|1C1F30-101010,384|2|005CFF-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 539, 1226 + Yoffset
+		Exit Sub
+	End If
+
+	'''当前页面的无尽挑战已经不能再继续了，连续挑战变成锁的形状
+'	FindMultiColor 177,888 + Yoffset,193,904 + Yoffset,"2F2A26-101010","-9|-7|ACABA9-101010,-9|7|ABAAA9-101010,8|7|A8A6A5-101010,581|-17|7D93AA-101010,723|17|394A5E-101010",0,0.9,intX,intY
+'	If intX > -1 And intY > -1 Then
+	CvtStr = StrOffset("176|889|ACABA9-101010,185|896|2F2A26-101010,406|903|A2ADBE-101010,662|891|8C97A9-101010,766|876|8399B0-101010,899|920|8297B0-101010,910|914|38495C-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 995, 66 + Yoffset
+		ShowMessage "3星结束"
+		ReleaseCapture
+		DailySW = 1
+		Delay 2000		
+		Exit Sub
+	End If
+
+	'''不存在剩余纪念币
+	CvtStr = StrOffset("87|751|00C4FF-101010,67|739|333333-101010,218|774|00C4FF-101010,426|1024|655A50-101010,426|1035|00DFFE-101010,434|1040|007DEB-101010,647|1105|00DFFE-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 540, 1073 + Yoffset
+		Exit Sub
+	End If
+
+
+End If
+	
+End Sub
+
+
+//////////选择ED2，4星无尽挑战
+Sub ED2
+
+If DailySW = 1 Then 
+	
+
+	'''点选4星无尽挑战
+	FindMultiColor 15,886 + Yoffset,69,930 + Yoffset,"B2DBF7-101010","6|8|02060C-101010,821|798|7895AA-101010,903|865|091018-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 540, 1342 + Yoffset		
+		Exit Sub
+	End If
+	
+	'''勾选连续战斗
+	FindMultiColor 175,885 + Yoffset,190,902 + Yoffset,"322C26-101010","-16|-15|61584D-101010,-6|3|171411-101010,16|16|4E453C-101010,17|16|4E453C-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY + Yoffset
+		Exit Sub
+	End If
+
+	''''如果已经勾选连续战斗就开始对决
+	FindMultiColor 175,885 + Yoffset,190,902 + Yoffset,"008DF4-101010","-16|-15|8B7E6F-101010,-6|3|352F28-101010,16|16|00B6FD-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 548, 870 + Yoffset
+		Exit Sub
+	End If
+
+	''''战斗结算
+	FindMultiColor 318,786 + Yoffset,347,820 + Yoffset,"0061FF-101010","18|-13|1E222F-101010,68|1|0060FF-101010,107|-1|1C1F30-101010,384|2|005CFF-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 539, 1226 + Yoffset
+		Exit Sub
+	End If
+
+	'''当前页面的无尽挑战已经不能再继续了，连续挑战变成锁的形状
+'	FindMultiColor 177,888 + Yoffset,193,904 + Yoffset,"2F2A26-101010","-9|-7|ACABA9-101010,-9|7|ABAAA9-101010,8|7|A8A6A5-101010,581|-17|7D93AA-101010,723|17|394A5E-101010",0,0.9,intX,intY
+'	If intX > -1 And intY > -1 Then
+	CvtStr = StrOffset("176|889|ACABA9-101010,185|896|2F2A26-101010,406|903|A2ADBE-101010,662|891|8C97A9-101010,766|876|8399B0-101010,899|920|8297B0-101010,910|914|38495C-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 995, 66 + Yoffset
+		ShowMessage "4星结束"
+		ReleaseCapture
+		DailySW = 2		''准备执行5星无尽挑战
+		Delay 2000
+		Exit Sub
+	End If
+	
+	'''不存在剩余纪念币
+	CvtStr = StrOffset("87|751|00C4FF-101010,67|739|333333-101010,218|774|00C4FF-101010,426|1024|655A50-101010,426|1035|00DFFE-101010,434|1040|007DEB-101010,647|1105|00DFFE-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 540, 1073 + Yoffset
+		Exit Sub
+	End If
+	
+End If
+
+End Sub
+
+
+//////////选择ED3，5星无尽挑战
+Sub ED3
+
+If DailySW = 2 Then 
+
+	'''点选5星无尽挑战
+	FindMultiColor 15,886 + Yoffset,69,930 + Yoffset,"B2DBF7-101010","6|8|02060C-101010,821|798|7895AA-101010,903|865|091018-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 540, 1663 + Yoffset		
+		Exit Sub
+	End If
+	
+	'''勾选连续战斗
+	FindMultiColor 175,885 + Yoffset,190,902 + Yoffset,"322C26-101010","-16|-15|61584D-101010,-6|3|171411-101010,16|16|4E453C-101010,17|16|4E453C-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY + Yoffset
+		Exit Sub
+	End If
+
+	''''如果已经勾选连续战斗就开始对决
+	FindMultiColor 175,885 + Yoffset,190,902 + Yoffset,"008DF4-101010","-16|-15|8B7E6F-101010,-6|3|352F28-101010,16|16|00B6FD-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 548, 870 + Yoffset
+		Exit Sub
+	End If
+
+	''''战斗结算
+	FindMultiColor 318,786 + Yoffset,347,820 + Yoffset,"0061FF-101010","18|-13|1E222F-101010,68|1|0060FF-101010,107|-1|1C1F30-101010,384|2|005CFF-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 539, 1226 + Yoffset
+		Exit Sub
+	End If
+
+	'''当前页面的无尽挑战已经不能再继续了，连续挑战变成锁的形状
+'	FindMultiColor 177,888 + Yoffset,193,904 + Yoffset,"2F2A26-101010","-9|-7|ACABA9-101010,-9|7|ABAAA9-101010,8|7|A8A6A5-101010,581|-17|7D93AA-101010,723|17|394A5E-101010",0,0.9,intX,intY
+'	If intX > -1 And intY > -1 Then
+	CvtStr = StrOffset("176|889|ACABA9-101010,185|896|2F2A26-101010,406|903|A2ADBE-101010,662|891|8C97A9-101010,766|876|8399B0-101010,899|920|8297B0-101010,910|914|38495C-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 995, 66 + Yoffset
+		ShowMessage "5星结束"
+		ReleaseCapture
+		DailySW = 3
+		Delay 2000
+		Exit Sub
+	End If
+
+	'''不存在剩余纪念币
+	CvtStr = StrOffset("87|751|00C4FF-101010,67|739|333333-101010,218|774|00C4FF-101010,426|1024|655A50-101010,426|1035|00DFFE-101010,434|1040|007DEB-101010,647|1105|00DFFE-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 540, 1073 + Yoffset
+		Exit Sub
+	End If
+	
+End If
+	
+End Sub
+
+
+
+
+//////////皮肤塔
+Sub AutoSkin
+	
+If DailySW = 3 Then 
+
+	'''如果还在无尽挑战
+	FindMultiColor 15,886 + Yoffset,69,930 + Yoffset,"B2DBF7-101010","6|8|02060C-101010,821|798|7895AA-101010,903|865|091018-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 995, 67 + Yoffset		
+		Exit Sub
+	End If
+	
+	'''点击夜世界
+	Dim intX,intY
+	FindMultiColor 921,1444 + Yoffset,951,1468 + Yoffset,"F80F7C-101010","10|43|93EDF5-101010,-34|59|FF00BF-101010,92|87|FF00AD-101010,137|-27|007EFE-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY + Yoffset
+		Exit Sub
+	End If
+	'''看见回主界面的按钮
+	FindMultiColor 968,67 + Yoffset,1002,101 + Yoffset,"6A5F5E-101010","0|-24|00C7FF-101010,-23|-19|00CEFF-101010,44|13|0A0908-101010,33|30|00A4FF-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 753, 1575 + Yoffset		
+		Exit Sub
+	End If
+	
+	'''皮肤塔选择界面
+	FindMultiColor 88,130 + Yoffset,101,141 + Yoffset,"030316-101010","9|6|C7EFF9-101010,16|62|03031C-101010,253|24|91B3DF-101010,193|70|90B1DE-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		
+		'''找到锁的样子，表示还不能战斗的层数
+		FindMultiColor 903,834 + Yoffset,980,1680 + Yoffset,"000000-101010","-17|-15|244665-101010,18|-15|234766-101010,-21|20|206187-101010,23|20|206287-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap intX, intY - 180 + Yoffset
+			Exit Sub
+		End If
+	End If
+	
+	'''勾选连续战斗
+	FindMultiColor 890,432 + Yoffset,903,448 + Yoffset,"322C26-101010","-8|2|181512-101010,1|13|12100E-101010,-4|18|4A4139-101010,6|17|484037-101010,32|21|1F1B17-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY + Yoffset
+		Exit Sub
+	End If
+	
+	'''勾选连续战斗弹出的选项
+	CvtStr = StrOffset("179|599|333333-101010,219|610|00C4FF-101010,883|1205|333333-101010,876|1204|0C0C0C-101010,427|1249|00E2FF-101010,424|1259|007DEB-101010,635|1324|00DEFE-101010,638|1328|007FEB-101010,885|605|333333-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		TracePrint "循环确认连续战斗的选项"
+		ReleaseCapture
+		Do
+			'''去掉失败时结束战斗的选项
+			CvtStr = StrOffset("236|882|008DF4-101010,229|885|332C26-101010,224|869|0072EE-101010,255|902|00B7FD-101010", 0 ,Yoffset)
+			If CmpColorEx(CvtStr,0.9) = 1 Then
+				Tap 239, 885 + Yoffset
+			End If
+			Delay 300
+			
+			'''勾上在能胜利的层数自动挑战
+			CvtStr = StrOffset("236|996|312B25-101010,224|983|1F1B17-101010,229|1000|171412-101010,257|1016|4E453C-101010", 0 ,Yoffset)
+			If CmpColorEx(CvtStr,0.9) = 1 Then
+				Tap 243, 997 + Yoffset
+			End If
+			Delay 300
+			
+			'''点击确认按键
+			CvtStr = StrOffset("236|882|322C26-101010,229|885|171412-101010,225|869|201C18-101010,256|901|4E453C-101010,226|983|0071ED-101010,225|1015|00B4FD-101010,256|1015|00B4FD-101010,426|1264|0082EC-101010", 0 ,Yoffset)
+			If CmpColorEx(CvtStr,0.9) = 1 Then
+				Tap 521, 1292 + Yoffset
+				TracePrint "点击确认，准备下面的开始战斗"
+				Delay 300
+				Exit Do
+			End If
+			
+		Loop
+
+	End If	
+	
+	'''已经勾选连续战斗的话，就点击战斗图标
+	FindMultiColor 890,432 + Yoffset,903,448 + Yoffset,"0090F4-101010","-9|2|332C26-101010,-1|12|514840-101010,-13|8|00A0F8-101010,5|16|00AEFB-101010,31|16|0070EF-101010,-15|-19|006FED-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap 958, 613 + Yoffset
+		Exit Sub
+	End If
+
+
+	''''统计战斗结果
+	CvtStr = StrOffset("335|492|005AFF-101010,358|473|202431-101010,444|494|111322-101010,723|492|0055FF-101010,420|1498|564D44-101010,425|1505|00DCFE-101010,434|1510|0080EB-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 527, 1540 + Yoffset
+		TracePrint "皮肤塔统计战斗结果"
+		Exit Sub
+	End If
+	
+	''''连续战斗变成锁的形状，说明次数用完了
+	CvtStr = StrOffset("886|430|B0ADAB-101010,899|415|B3AFAD-101010,913|429|B5B3B1-101010,886|452|ADABA9-101010,913|452|ABA9A7-101010,1076|503|0042A9-101010,1021|673|00DDFF-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 996, 63 + Yoffset
+		ReleaseCapture 
+		ShowMessage "皮肤塔次数用完"
+		TracePrint "皮肤塔次数用完"
+		ReleaseCapture
+		DailySW = 4		''4是日常活动本
+		Delay 2000
+		Exit Sub
+	End If
+	
+	
+	
+End If
+	
+End Sub
+
+
+//////////活动本
+Sub HuoDongFuBen
+	
+
+If DailySW = 4 Then 
+	
+		'''活动 本的连续战斗已经变成锁的样子了
+		CvtStr = StrOffset("244|212|00E5FF-101010,248|294|004BCC-101010,529|288|008CFF-101010,791|285|0050CD-101010,893|314|ADABA9-101010,902|302|B1AEAC-101010,912|329|A9A8A6-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 995,66 + Yoffset
+			ShowMessage "活动本结束1"
+			TracePrint "活动本结束1"
+			ReleaseCapture
+			DailySW = 5	''5表示转换日常后追加的活动
+			Delay 2000
+			Exit Sub
+		End If
+
+		'''皮肤塔选择界面
+		FindMultiColor 88,130 + Yoffset,101,141 + Yoffset,"030316-101010","9|6|C7EFF9-101010,16|62|03031C-101010,253|24|91B3DF-101010,193|70|90B1DE-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap 993, 66 + Yoffset
+			TracePrint "看见皮肤塔界面，点击X"
+			Exit Sub
+		End If
+		
+		'''看见回主界面的按钮
+		FindMultiColor 968,67 + Yoffset,1002,101 + Yoffset,"6A5F5E-101010","0|-24|00C7FF-101010,-23|-19|00CEFF-101010,44|13|0A0908-101010,33|30|00A4FF-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap 331, 1200 + Yoffset
+			TracePrint "看见回主界面按钮，点击活动本"
+			Exit Sub
+		End If
+		
+		'''活动本界面，点击自动连续战斗
+		CvtStr = StrOffset("538|88|00A3ED-101010,541|156|00367C-101010,246|212|00E6FF-101010,841|294|004BCC-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 962, 317 + Yoffset
+			TracePrint "点击连续战斗"
+			Delay 1000
+			Exit Sub
+		End If
+		
+		'''连续战斗界面的确认
+		CvtStr = StrOffset("349|263|DAF9F9-101010,350|325|87C0FF-101010,728|275|CEF3FA-101010,728|325|87C0FF-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 682, 1597 + Yoffset
+			TracePrint "点击连续战斗的确认"
+			ReleaseCapture
+			Delay 1000
+			Exit Sub
+		End If	
+
+		'''统计结算
+		CvtStr = StrOffset("335|491|005BFF-101010,357|475|1B1E29-101010,458|491|005CFF-101010,693|492|005AFF-101010,417|1499|5D5349-101010,425|1505|00DCFE-101010,433|1514|0084EC-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			Tap 540, 1539 + Yoffset
+			ShowMessage "活动本结束2"
+			TracePrint "活动本结束2"
+			ReleaseCapture
+			DailySW = 5	''5表示转换日常后追加的活动
+			Delay 1000
+			Exit Sub
+		End If 
+End If
+
+End Sub
+
+
+
+/////日常结束后去做对应的事情
+Sub AfterDaily
+	
+	Dim Chose = ReadUIConfig("下拉框_AfterDaily")
+	
+	
+	
+If DailySW = 5 Then 
+	
+	log.Close
+	
+	''''Chose 0的时候是打车，1是PVP自杀
+	If Chose = 0 Then 
+		'''看见回主界面的按钮，回主界面
+		FindMultiColor 968,67 + Yoffset,1002,101 + Yoffset,"6A5F5E-101010","0|-24|00C7FF-101010,-23|-19|00CEFF-101010,44|13|0A0908-101010,33|30|00A4FF-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap intX, intY + Yoffset
+			Exit Sub
+		End If
+		
+		'''去RAID
+		FindMultiColor 921,1444 + Yoffset,951,1468 + Yoffset,"F80F7C-101010","10|43|93EDF5-101010,-34|59|FF00BF-101010,92|87|FF00AD-101010,137|-27|007EFE-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap 943,962 + Yoffset
+			Exit Sub
+		End If
+		
+		'''发现副本的刷新标志
+		CvtStr = StrOffset("64|643|11BEDA-101010,64|637|5D534B-101010,62|664|0D9FD6-101010,71|666|0C9CD6-101010,68|673|38322C-101010", 0, Yoffset)
+		If CmpColorEx(CvtStr, 0.9) = 1 Then 
+			ShowMessage "开始自动打车"
+			DailySW = 6
+			dxk_raid = True
+			'这里是DS的选择
+			dxk1 = ReadUIConfig("多选框_dcss1")
+			dxk2 = ReadUIConfig("多选框_dcss2")
+			dxk3 = ReadUIConfig("多选框_dcss3")
+			dxk4 = ReadUIConfig("多选框_dcss4")
+			dxk5 = ReadUIConfig("多选框_dcss5")
+			'这里是FEVER的选择
+			dxk_f1 = ReadUIConfig ("多选框_dcf1")
+			dxk_f2 = ReadUIConfig ("多选框_dcf2")
+			dxk_f3 = ReadUIConfig ("多选框_dcf3")
+			dxk_f4 = ReadUIConfig("多选框_dcf4")	
+			dxk_f5 = ReadUIConfig("多选框_dcf5")
+			
+			ReleaseCapture
+			Exit Sub
+		End If
+		
+	ElseIf Chose = 1 Then
+	
+		'''看见回主界面的按钮时直接点击PVP界面
+		FindMultiColor 968,67 + Yoffset,1002,101 + Yoffset,"6A5F5E-101010","0|-24|00C7FF-101010,-23|-19|00CEFF-101010,44|13|0A0908-101010,33|30|00A4FF-101010",0,0.9,intX,intY
+		If intX > -1 And intY > -1 Then
+			Tap 342,871 + Yoffset
+			Exit Sub
+		End If
+	
+		'''发现是PVP界面了
+		CvtStr = StrOffset("82|757|8500DD-101010,81|781|8500DD-101010,112|757|8500DD-101010,149|781|8500DD-101010,158|758|8500DD-101010,179|780|8500DD-101010", 0 ,Yoffset)
+		If CmpColorEx(CvtStr,0.9) = 1 Then
+			ShowMessage "开始PVP自杀模式"
+			DailySW = 6
+			PVPLose = True
+			ReleaseCapture
+			Exit Sub
+		End If
+	End If
+
+	'''日常活动本结束后的X点一下
+	FindMultiColor 980,51 + Yoffset,1010,79 + Yoffset,"9D9D9D-101010","-21|-23|9C9C9C-101010,23|22|9E9D9D-101010,-21|21|9D9C9C-101010,21|-21|9C9C9C-101010",0,0.9,intX,intY
+	If intX > -1 And intY > -1 Then
+		Tap intX, intY + Yoffset
+		Exit Sub
+	End If
+	
+	'''如果上面的统计结算没点到
+	CvtStr = StrOffset("335|491|005BFF-101010,357|475|1B1E29-101010,458|491|005CFF-101010,693|492|005AFF-101010,417|1499|5D5349-101010,425|1505|00DCFE-101010,433|1514|0084EC-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 540, 1539 + Yoffset
+		ReleaseCapture	
+		Delay 1000
+		Exit Sub
+	End If 
+	
+	
+
+End If
+
+	
+End Sub
+
+
+
+
+
+/***********是否正在战斗中***************/
+Function Battle
+	Dim cvt1,cvt2
+	cvt1 = StrOffset("0|1900|004D2A-010101,0|1904|004B28-010101,0|1910|004826-010101,0|1919|004123-010101", 0 , Yoffset)
+	cvt2 = StrOffset("0|1900|00C168-010101,0|1904|00BC65-010101,0|1910|00B360-010101,0|1919|01A558-010101", 0 , Yoffset)	
+	If CmpColorEx(cvt1,0.95) = 1 Or CmpColorEx(cvt2,0.95) = 1 Then
+		Battle = True
+'		TracePrint "Battle = True"
+	Else 
+		Battle = False
+'		TracePrint "Battle = False"
+	End If	
 End Function
