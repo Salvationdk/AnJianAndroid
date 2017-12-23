@@ -56,3 +56,13 @@ Function fzhuagui
     UIP.SetAttribute "多选框_PVP_Lose", {"选中":false}
     UIP.SetAttribute "多选框_Daily", {"选中":false}    
 End Function
+
+'世界BOSS
+Function fwb
+    UIP.SetAttribute "多选框_RaidSeason_En", {"选中":false}
+End Function
+
+'Raid活动
+Function frs
+    UIP.SetAttribute "多选框_WorldBoss_En", {"选中":false}
+End Function
