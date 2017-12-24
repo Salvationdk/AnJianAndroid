@@ -243,6 +243,7 @@ Dim RaidSeasonEn = ReadUIConfig("多选框_RaidSeason_En")
 
 Dim RaidTimeLimitEn = ReadUIConfig("多选框_dc_time_limit")
 
+Dim DaCheFlag = True
 
 Dim DCHP_Limit = ReadUIConfig("多选框_dchp_limit")
 Dim DCHP_PecentHigh = CInt(ReadUIConfig("输入框_dchp_percent_high"))
@@ -730,6 +731,8 @@ Sub AutoRaid
 
     Dim nx1,ny1,nx2,ny2	'这组坐标用来判断挑战次数
     Dim lx1,ly1,lx2,ly2 '这组坐标用来判断BOSS等级
+    
+    Dim tx1,ty1,tx2,ty2 '副本剩余时间
 
 
     Dim LastY = StartY	'记录上一次找到的20人标志，然后在这个基础上Y坐标往下移继续寻找下一个20人标志
@@ -750,7 +753,7 @@ Sub AutoRaid
 	
         Dim TicketNum
         
-        
+        '''''如果是Raid活动，判断门票的方式就是查找是否有那个黄色的“+”号，有的话说明门票是0了
         If RaidSeasonEn = True Then 
             CvtStr = StrOffset("995|576|5B5758-101010,1009|590|5B5959-101010", 0, Yoffset)
             If CmpColorEx(CvtStr, 0.9) = 1 Then 
@@ -780,18 +783,17 @@ Sub AutoRaid
             Exit Sub
         End If
         '''副本失败
-        FindPic 480, 776 + Yoffset, 573, 1620 + Yoffset, "Attachment:Raid副本失败.png", "000000", 0, 0.9, intX, intY	
-        If intX > -1 And intY > -1 Then
-            Tap intX, intY
-            Delay 2000
-            ReleaseCapture
-            Exit Sub
-        End If
+        '        FindPic 480, 776 + Yoffset, 573, 1620 + Yoffset, "Attachment:Raid副本失败.png", "000000", 0, 0.9, intX, intY	
+        '        If intX > -1 And intY > -1 Then
+        '            Tap intX, intY
+        '            Delay 2000
+        '            ReleaseCapture
+        '            Exit Sub
+        '        End If
 	
 		
-        If TicketNum = 0 Then		
+        If TicketNum = 0 Then
             ShowMessage "门票为0"
-            
             
             ''如果开启了自动购买门票	
             If RaidSeasonEn = True And dxk_raid_tickets = True Then 
@@ -815,245 +817,255 @@ Sub AutoRaid
             
 
         Else 
-            '            ShowMessage "还有"&TicketNum&"张门票"
+           
             Delay 500
 		
             '''一共循环滑动屏幕N次
             For 5
 			
                 While LastY < EndY		'这个while是为了遍历寻找20人			
-			
-                    //				TracePrint StartX&","&LastY&","&EndX&","&EndY
-				
- '                   FindMultiColor StartX,LastY,EndX,EndY,"999999-050505","-3|10|999999-050505,-5|17|999999-050505,6|-1|999999-050505,12|0|999999-050505,5|19|999999-050505,18|0|999999-050505,18|18|999999-050505,25|18|999999-050505,25|0|999999-050505",0,1,intX,intY
 					
-					TracePrint StartX&","&LastY&","&EndX&","&EndY
+                    '                   FindMultiColor StartX,LastY,EndX,EndY,"999999-050505","-3|10|999999-050505,-5|17|999999-050505,6|-1|999999-050505,12|0|999999-050505,5|19|999999-050505,18|0|999999-050505,18|18|999999-050505,25|18|999999-050505,25|0|999999-050505",0,1,intX,intY
 					
-					If fbl <> 2 Then 
-						FindStr StartX, LastY, EndX, EndY, "20人", "999999-010101", 0.9, intX, intY
-'						FindMultiColor StartX,LastY,EndX,EndY,"999999-050505","-3|10|999999-050505,-5|17|999999-050505,6|-1|999999-050505,12|0|999999-050505,5|19|999999-050505,18|0|999999-050505,18|18|999999-050505,25|18|999999-050505,25|0|999999-050505",0,1,intX,intY
-					Else 
-						FindStr StartX/1.5, LastY/1.5, EndX/1.5, EndY/1.5, "20人", "999999-010101", 0.9, intX, intY
-					End If
+                    TracePrint StartX&","&LastY&","&EndX&","&EndY
 					
-                    If intX > -1 And intY > -1 Then 
-                    	If fbl = 2 Then 
-                    		intX = intX * 1.5
-                    		intY = intY * 1.5
-                     	End If
+                    If fbl <> 2 Then 
+                        FindStr StartX, LastY, EndX, EndY, "20人", "999999-010101", 0.9, intX, intY
+                        '						FindMultiColor StartX,LastY,EndX,EndY,"999999-050505","-3|10|999999-050505,-5|17|999999-050505,6|-1|999999-050505,12|0|999999-050505,5|19|999999-050505,18|0|999999-050505,18|18|999999-050505,25|18|999999-050505,25|0|999999-050505",0,1,intX,intY
+                    Else 
+                        FindStr StartX/1.5, LastY/1.5, EndX/1.5, EndY/1.5, "20人", "999999-010101", 0.9, intX, intY
+                    End If
+					
+                    If intX > -1 And intY > -1 Then ''''''''''''''找到车子！！！
+                    
+                        Do '这个Do...Loop是为了发现任何一个不符合条件的车子，就马上跳出，省掉剩余的判断
+                    
+                            DaCheFlag = True		''打车的标志先准备好，下面每个判断如果出错，就改成False，最后根据这个标志来判断是否需要打这辆车
+                    	
+                    	
+                            '''这里的分辨率判断，是为了720p下，把得到的坐标值换成1080p，这样后面的代码就完全一致了
+                            If fbl = 2 Then 
+                                intX = intX * 1.5
+                                intY = intY * 1.5
+                            End If
                      	
-                     	intX = intX + 7
-                    	intY = intY + 2
+                            ''''这个坐标偏移是因为找20人标志时，不同的方法找到的坐标值不同，然后补上这个差值来保证接下去的判断坐标都能一样，不需要另外修改
+                            intX = intX + 7
+                            intY = intY + 2
                     	
-                        TracePrint "发现车子的坐标点："&intX&","&intY
+                            TracePrint "发现车子的坐标点："&intX&","&intY
                     	
-                        ShowMessage "发现车子"
-                        Delay 500
+                            ShowMessage "发现车子"
+                            Delay 500
+                            
                 		
-                        nx1 = intX - 597
-                        ny1 = intY + 158					
-                        nx2 = intX - 497
-                        ny2 = intY + 200
+                            nx1 = intX - 597
+                            ny1 = intY + 158					
+                            nx2 = intX - 497
+                            ny2 = intY + 200
 					
-                        If fbl = 1 Then '1080*1920
-                            lx1 = intX - 982
-                            ly1 = intY + 40
-                            lx2 = intX - 827
-                            ly2 = intY + 160
-                        ElseIf fbl = 2 Then	'720*1280
-                            lx1 = intX/1.5 - 643
-                            ly1 = intY/1.5 + 31
-                            lx2 = intX/1.5 - 557
-                            ly2 = intY/1.5 + 103
-                        End If
+
                         
                         
-                        ''血量坐标点-高
-                        Dim Xhp,Yhp,Xhps,Xhpe
-'                        If fbl = 1 Then 
+                            ''血量坐标点-高
+                            Dim Xhp,Yhp,Xhps,Xhpe
                             Yhp = intY + 159
                             Xhps = intX - 678
                             Xhpe = intX + 29
                             Xhp = (Xhpe - Xhps) * DCHP_PecentHigh / 100 + Xhps
-'                        ElseIf fbl = 2 Then
-'                            Yhp = (intY + 159) / 1.5
-'                            Xhps = (intX - 678) / 1.5
-'                            Xhpe = (intX + 29) / 1.5
-'                            Xhp = (Xhpe - Xhps) * DCHP_PecentHigh /100 + Xhps
-'                        End If
-
-                        TracePrint "血量高的判断点坐标："&Xhp&","&Yhp
+                            TracePrint "血量高的判断点坐标："&Xhp&","&Yhp
                         
                         
-                        ''血量坐标点-低
-                        Dim Xhpl,Yhpl,Xhpls,Yhple
-'                        If fbl = 1 Then 
+                            ''血量坐标点-低
+                            Dim Xhpl,Yhpl,Xhpls,Yhple
                             Yhpl = intY + 159
                             Xhpls = intX - 678
                             Yhple = intX + 29
-'                        ElseIf fbl = 2 Then
-'                            Yhpl = (intY + 159) / 1.5
-'                            Xhpls = (intX - 678) / 1.5
-'                            Yhple = (intX + 29) / 1.5
-'                        End If
-                        Xhpl = (Yhple - Xhpls) * DCHP_PecentLow / 100 + Xhpls
-                        TracePrint "血量低的判断点坐标："&Xhpl&","&Yhpl
+                            Xhpl = (Yhple - Xhpls) * DCHP_PecentLow / 100 + Xhpls
+                            TracePrint "血量低的判断点坐标："&Xhpl&","&Yhpl
                         
 
-                        ''''血量判断
-                        Dim HpCheckPass
-                        HpCheckPass = 1
+                            ''''血量判断
+                            Dim HpCheckPass
+                            HpCheckPass = 1
                         
-                        If DCHP_Limit = True Then
-                            If DCHP_PecentLow <> 0 Then 
-                                If CmpColor(Xhpl, Yhpl, "282727-101010", 0.9) <> -1 Then 
-                                    HpCheckPass = 0
-                                    TracePrint "血量下限不合格"
+                            If DCHP_Limit = True Then
+                                If DCHP_PecentLow <> 0 Then 
+                                    If CmpColor(Xhpl, Yhpl, "282727-101010", 0.9) <> -1 Then 
+                                        HpCheckPass = 0
+                                        DaCheFlag = False
+                                        ShowMessage "血量下限不合格"
+                                        TracePrint "血量下限不合格"
+                                        Delay 500
+                                        Exit Do
+                                    End If
+                                    Delay 50
                                 End If
-                            End If
                         	
-                            If DCHP_PecentHigh <> 100 Then 
-                                If CmpColor(Xhp, Yhp, "282727-101010", 0.9) = -1 Then
-                                    HpCheckPass = 0
-                                    TracePrint "血量上限不合格"
+                                If DCHP_PecentHigh <> 100 Then 
+                                    If CmpColor(Xhp, Yhp, "282727-101010", 0.9) = -1 Then
+                                        HpCheckPass = 0
+                                        DaCheFlag = False
+                                        TracePrint "血量上限不合格"
+                                        ShowMessage "血量上限不合格"
+                                        Delay 500
+                                        Exit Do
+                                    End If
+                                    Delay 50
                                 End If
                             End If
-                        End If
 	
-                        ''''''调试调试调试
-                        'TracePrint "20人："&intX&","&intY
-                        'TracePrint "截图："&lx1&","&ly1&","&lx2&","&ly2						
-                        'SnapShot "/sdcard/DestinyChild/aa.png",lx1, ly1, lx2, ly2
-					
-                        '''''临时测试用，到时候删除
-                        ''先找人形的图标
-                        FindMultiColor intX - 80 ,intY - 20,intX - 45 ,intY + 5,"FFFFFF-101010","-6|6|FFFFFF-101010,7|6|FFFFFF-101010,-14|28|FFFFFF-101010,15|28|FFFFFF-101010",0,0.9,intX,intY
-                        If intX > -1 And intY > -1 Then
-                            Dim tmpcnt
-                            tmpcnt = SmartOcr(intX + 17 , intY - 5, intX + 60, intY + 35, "FFFFFF-101010")
-                            ShowMessage "已经有"&tmpcnt&"人上车"
-                            Delay 500
-                        End If
-					
-
-					
-					
-
-                        '					TracePrint "nx1="&nx1
-                        '					TracePrint "ny1="&ny1
-                        '					TracePrint "nx2="&nx2
-                        '					TracePrint "ny2="&ny2
-					
-                        Dim result	'定义一个变量，1表示挑战的次数是1，已经打过的车子，0表示挑战次数是0，没打过					
-                        result = 1					
-                        '					FindStr(nx1,ny1,nx2,ny2,"挑战0","00C4FF-101010",0.7,intX,intY)	//判断次数是否为0			
-                        '					If intX > -1 And intY > -1 Then 
-                        '						result = 0
-                        '					End If
-						
-                        '					If result = 1 Then 
-                        '						FindStr nx1, ny1, nx2, ny2, "挑战0a", "00C4FF-101010", 0.7, intX, intY
-                        '						If intX > -1 And intY > -1 Then 
-                        '							result = 0
-                        '						End If
-                        '					End If
-
-                        FindMultiColor nx1, ny1, nx2, ny2,"000000-101010","0|9|000000-101010,0|-4|00C4FF-101010,-4|-1|00C4FF-101010,-5|4|00C4FF-101010,-4|10|00C4FF-101010,0|13|00C4FF-101010,3|11|00C2FD-101010,5|5|00C4FF-101010,4|-2|00BFF9-101010",0,0.8,intX,intY
-                        If intX > -1 And intY > -1 Then 
-                            result = 0
-                        End If
-					
-					
-                        If result = 0 Then ''''判断车子没有打过以后，再判断车子等级是否符合
-					
+	
+	
                             '''是否需要判断等级
-                            Dim LevelLimit = ReadUIConfig ("多选框_LevelLimit")	
-                            If LevelLimit = False Then 
-						
-                                ''''作者专用截图。用在720p的情况下，截取车子的等级，做字库
-                                Dim atss = ReadUIConfig("多选框_atscreenshot")
-                                If atss = True Then 
-                                    Name = Time()
-                                    SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
-                                    Delay 1000	
-                                End If
-							
-								If HpCheckPass = 1 Then 
-									Tap intX, intY
-                                	ShowMessage "搭车"
-                                	Goto SkipSearchRaid
-                               	Else 
-                               		ShowMessage "血量超范围"
-								End If
+                            Dim LevelLimit = ReadUIConfig ("多选框_LevelLimit")
+                            If LevelLimit = True Then 
                             
+                                If fbl = 1 Then '1080*1920
+                                    lx1 = intX - 982
+                                    ly1 = intY + 40
+                                    lx2 = intX - 827
+                                    ly2 = intY + 160
+                                ElseIf fbl = 2 Then	'720*1280
+                                    lx1 = intX/1.5 - 643
+                                    ly1 = intY/1.5 + 31
+                                    lx2 = intX/1.5 - 557
+                                    ly2 = intY/1.5 + 103
+                                End If
+                            
+                                Dim BossLevelResult
+                                BossLevelResult = CheckBossLevel(lx1, ly1, lx2, ly2)
+                        
+                                If BossLevelResult = "" Then 
+                                    ShowMessage "BOSS等级读取错误"
+                                    Delay 2000
+                                    DaCheFlag = False
+                                    Exit Do
+                                Else 
+                                    ShowMessage "BOSS等级是" & BossLevelResult
+                                    Delay 100
+                                    Dim tmplevel
+                                    tmplevel = CInt(BossLevelResult)
+                                    If tmplevel >= LevelMin And tmplevel <= LevelMax Then 
+                                        ''''作者专用截图。用在720p的情况下，截取车子的等级，做字库
+                                        Dim atss = ReadUIConfig("多选框_atscreenshot")
+                                        If atss = True Then 
+                                            Name = Time()
+                                            SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
+                                            Delay 1000	
+                                        End If
+                                    Else 
+                                        ShowMessage "车子等级不符合"
+                                        DaCheFlag = False
+                                        Delay 500
+                                        Exit Do
+                                    End If
+                        		
+                                End If
+                                Delay 100
                             End If
-						
-                            Dim BossLevelResult
-                            BossLevelResult = CheckBossLevel(lx1, ly1, lx2, ly2)
-						
-                            If BossLevelResult = "" Then 
-                                ShowMessage "BOSS等级读取错误"
-                                Delay 2000
+
+							
+							
+	
+                            ''''''调试调试调试
+                            'TracePrint "20人："&intX&","&intY
+                            'TracePrint "截图："&lx1&","&ly1&","&lx2&","&ly2						
+                            'SnapShot "/sdcard/DestinyChild/aa.png",lx1, ly1, lx2, ly2
+					
+                            '''''临时测试用，到时候删除
+                            ''先找人形的图标
+                            '                        FindMultiColor intX - 80 ,intY - 20,intX - 45 ,intY + 5,"FFFFFF-101010","-6|6|FFFFFF-101010,7|6|FFFFFF-101010,-14|28|FFFFFF-101010,15|28|FFFFFF-101010",0,0.9,intX,intY
+                            '                        If intX > -1 And intY > -1 Then
+                            '                            Dim tmpcnt
+                            '                            tmpcnt = SmartOcr(intX + 17 , intY - 5, intX + 60, intY + 35, "FFFFFF-101010")
+                            '                            ShowMessage "已经有"&tmpcnt&"人上车"
+                            '                            Delay 500
+                            '                        End If
+					
+					
+					
+					
+					
+					
+					        ''''时间判断
+                            If RaidTimeLimitEn = True Then 
+                                tx1 = intX - 104
+                                ty1 = intY + 24
+                                tx2 = intX + 45
+                                ty2 = intY + 77
+                                
+                                If fbl = 2 Then 
+                                    tx1 = tx1 / 1.5
+                                    ty1 = ty1 / 1.5
+                                    tx2 = tx2 / 1.5
+                                    ty2 = ty2 / 1.5
+                                End If
+
+							
+                                Dim LastTime
+                                LastTime=Cint(Ocr(tx1,ty1,tx2,ty2,"FFFFFF-010101",0.9))
+                                Traceprint LastTime
+                                
+                                If LastTime < 3000 Then 
+                                    ShowMessage "时间小于半小时"
+                                    TracePrint "时间小于半小时"
+                                    DaCheFlag = False
+                                    Delay 400
+                                    Exit Do
+                                End If
+                                Delay 100
+                            End If
+					
+					
+					
+                            Dim result	'定义一个变量，1表示挑战的次数是1，已经打过的车子，0表示挑战次数是0，没打过
+                            result = 1
+                            FindMultiColor nx1, ny1, nx2, ny2,"000000-101010","0|9|000000-101010,0|-4|00C4FF-101010,-4|-1|00C4FF-101010,-5|4|00C4FF-101010,-4|10|00C4FF-101010,0|13|00C4FF-101010,3|11|00C2FD-101010,5|5|00C4FF-101010,4|-2|00BFF9-101010",0,0.8,intX,intY
+                            If intX > -1 And intY > -1 Then 
+                                result = 0
+                            Else 
+                                ShowMessage "车子已经打过"
+                                result = 1
+                                DaCheFlag = False
+                                Delay 300
+                                Exit Do
+                            End If
+                            Delay 100
+					
+    
+                        
+                            ''''判断DaCheFlag标志，确认是否需要打车
+                            If DaCheFlag = True Then 
+                                Tap intX, intY
+                                ShowMessage "搭车"
                                 Goto SkipSearchRaid
                             End If
-						
+                        
+                            Exit Do
 
-						
-                            ShowMessage "BOSS等级是" & BossLevelResult
-						
-                            Dim tmplevel
-                            tmplevel = CInt(BossLevelResult)
-						
-                            If tmplevel >= LevelMin And tmplevel <= LevelMax Then 
-						
-                                ''''作者专用截图。用在720p的情况下，截取车子的等级，做字库
-                                atss = ReadUIConfig("多选框_atscreenshot")
-                                If atss = True Then 
-                                    Name = Time()
-                                    SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
-                                    Delay 1000	
-                                End If
-							
-								If HpCheckPass = 1 Then 
-									Tap intX, intY
-                                	ShowMessage "搭车"
-                                	Goto SkipSearchRaid
-                               	Else 
-                               		ShowMessage "血量超范围"
-								End If
-                                
-                            Else 
-                                ShowMessage "车子等级不符合"
-                            End If
-                            Delay 2000
-                        Else 
-                            ShowMessage "车子已经打过"
-                            Delay 1000
-                        End If
-                        
-                        
-                    Else
-                        '''副本失败
-                        FindPic 480, 776 + Yoffset, 573, 1620 + Yoffset, "Attachment:Raid副本失败.png", "000000", 0, 0.9, intX, intY	
-                        If intX > -1 And intY > -1 Then
-                            Tap intX, intY
-                            Delay 2000
-                            Exit Sub
-                        End If
-                        Delay 300
+                            '                    Else
+                            '                        '''副本失败
+                            '                        FindPic 480, 776 + Yoffset, 573, 1620 + Yoffset, "Attachment:Raid副本失败.png", "000000", 0, 0.9, intX, intY	
+                            '                        If intX > -1 And intY > -1 Then
+                            '                            Tap intX, intY
+                            '                            Delay 2000
+                            '                            Exit Sub
+                            '                        End If
+                            '                        Delay 300
+
+                        Loop
+
                     End If	'''发现车子
-                    
-                    
-				
+ 				
                     '往下寻找车子
                     LastY = LastY + 300
                     ShowMessage "寻找下一辆车子"
 				
-                    Delay 500		
+                    Delay 500
 				
                 Wend
 			
-                '			Rem SkipSearchRaid
                 If fbl = 2 Then 
                     Swipe 550, 1500, 550, 1280
                 Else 
@@ -1116,7 +1128,7 @@ Sub AutoRaid
         Tap 943,962 + Yoffset
         Exit Sub
     End If
-		
+    Delay 50
 	
 	
     ''''战斗失败
@@ -1159,26 +1171,26 @@ Sub AutoRaid
     Delay 50
 	
     '''战斗胜利4
-'    CvtStr = StrOffset("441|1340|D9D8D9-101010,434|1346|D9D9D9-101010,447|1346|E1E0E1-101010,441|1352|DEDDDE-101010,425|1369|DAD9D9-101010,430|1364|D9D8D9-101010,455|1365|DCDADB-101010,456|1369|DAD9D9-101010", 0 ,Yoffset)
-'    If CmpColorEx(CvtStr, 0.9) = 1 Then 
-'        ShowMessage "战斗胜利4"
-'        Tap 543, 992 + Yoffset
-'        Delay 1000
-'        ReleaseCapture
-'        Exit Sub
-'    End If
-'    Delay 50
+    '    CvtStr = StrOffset("441|1340|D9D8D9-101010,434|1346|D9D9D9-101010,447|1346|E1E0E1-101010,441|1352|DEDDDE-101010,425|1369|DAD9D9-101010,430|1364|D9D8D9-101010,455|1365|DCDADB-101010,456|1369|DAD9D9-101010", 0 ,Yoffset)
+    '    If CmpColorEx(CvtStr, 0.9) = 1 Then 
+    '        ShowMessage "战斗胜利4"
+    '        Tap 543, 992 + Yoffset
+    '        Delay 1000
+    '        ReleaseCapture
+    '        Exit Sub
+    '    End If
+    '    Delay 50
         
     '''战斗胜利5
-'    CvtStr = StrOffset("504|594|C4EBF0-101010,467|638|5F8DA9-101010,436|691|4D7A99-101010,376|658|B0EAF0-101010,647|639|85D6EA-101010,594|680|416E8F-101010,716|666|6BBBE7-101010", 0 ,Yoffset)
-'    If CmpColorEx(CvtStr,0.9) = 1 Then
-'        ShowMessage "战斗胜利5"
-'        Tap 543, 992 + Yoffset
-'        Delay 1000
-'        ReleaseCapture
-'        Exit Sub
-'    End If
-'    Delay 50
+    '    CvtStr = StrOffset("504|594|C4EBF0-101010,467|638|5F8DA9-101010,436|691|4D7A99-101010,376|658|B0EAF0-101010,647|639|85D6EA-101010,594|680|416E8F-101010,716|666|6BBBE7-101010", 0 ,Yoffset)
+    '    If CmpColorEx(CvtStr,0.9) = 1 Then
+    '        ShowMessage "战斗胜利5"
+    '        Tap 543, 992 + Yoffset
+    '        Delay 1000
+    '        ReleaseCapture
+    '        Exit Sub
+    '    End If
+    '    Delay 50
 
     '''进入战斗
     FindMultiColor 894, 522 + Yoffset, 1006, 794 + Yoffset, "00EAFF-101010", "1|7|00001A-101010,0|13|00BBFF-101010,5|23|0060E0-101010,1|48|000066-101010", 0, 0.9, intX, intY	
@@ -1217,9 +1229,7 @@ Sub AutoRaid
                 Tap 907, 914 + Yoffset
                 Delay 200
             End If
-        End If
-
-                
+        End If 
                 
         Delay 200
         ShowMessage "进入战斗"
@@ -1233,7 +1243,9 @@ Sub AutoRaid
     If CmpColorEx(CvtStr,0.9) = 1 Then
         ShowMessage "结算确认"
         Tap 521, 1639 + Yoffset
-        Delay 300
+        Delay 500
+        ReleaseCapture 
+        Exit Sub
     End If
     Delay 50
 	
@@ -1243,6 +1255,8 @@ Sub AutoRaid
         TracePrint "已完成的Raid！"
         Tap 527, 1057 + Yoffset
         Delay 500
+        ReleaseCapture 
+        Exit Sub
     End If
     Delay 100
 	
@@ -1251,7 +1265,9 @@ Sub AutoRaid
     If CmpColorEx(CvtStr, 0.9) = 1 Then 
         TracePrint "发现宝箱"
         Tap 681, 387 + Yoffset
-        Delay 2000		
+        Delay 2000
+        ReleaseCapture 
+        Exit Sub
     End If
     Delay 50
 	
@@ -1264,30 +1280,14 @@ Sub AutoRaid
         SnapShot "/sdcard/DestinyChild/天命之子" & CStr(Name) & ".png"
         Tap 535, 1615 + Yoffset
         Delay 1000
+        ReleaseCapture 
+        Exit Sub
     End If
     Delay 50
 	
-    '''''金币副本的倍率
-    CvtStr = StrOffset("312|939|81C0D5-101010,327|943|040822-101010,312|972|020218-101010,324|972|619AB7-101010,327|999|02041C-101010", 0, Yoffset)
-    If CmpColorEx(CvtStr, 0.9) = 1 Then 
-        TracePrint "金币副本倍率点击"
-        Tap 529, 1169 + Yoffset
-        Delay 5000
-    End If
-    Delay 50
-	
-    ''''金币副本倍率之后的确认
-    CvtStr = StrOffset("525|1298|00E2FF-101010,532|1311|0080EB-101010,413|1329|3A352E-101010,544|1382|007AEA-101010,668|1329|3E3831-101010", 0, Yoffset)
-    If CmpColorEx(CvtStr, 0.9) = 1 Then 
-        TracePrint "金币副本确认"
-        Tap 540, 1338 + Yoffset
-        Delay 3000
-    End If 
-    Delay 50
 	
 	
     ''''''''''''''''''''''''''Raid活动期间的一些不同判断
-    
     If RaidSeasonEn = True Then 
     	
         '''积分溢出的提示
@@ -1295,8 +1295,10 @@ Sub AutoRaid
         If CmpColorEx(CvtStr,0.9) = 1 Then
             Tap 729, 1120 + Yoffset		
             Delay 1000
+            ReleaseCapture 
+            Exit Sub
         End If
-        Delay 100    	
+        Delay 50    	
 	
         '''铜宝箱
         '        CvtStr = StrOffset("487|592|1A6EC1-101010,487|604|AACFFF-101010,487|617|1B6DC0-101010,590|616|207EDF-101010,554|603|AEE1FF-101010,595|591|1670CF-101010,630|435|0098FF-101010", 0 ,Yoffset)
@@ -1316,23 +1318,24 @@ Sub AutoRaid
             Exit Sub
         End If
         
+        Delay 50
         '''白金箱子
         CvtStr = StrOffset("469|591|BAA490-101010,473|599|332B20-101010,477|603|FFFFFF-101010,490|603|FFFFFF-101010,566|604|FFFFFF-101010,606|604|FFFFFF-101010", 0, Yoffset)
         If CmpColorEx(CvtStr,0.9) = 1 Then
-	        Tap 528, 1032 + Yoffset
+            Tap 528, 1032 + Yoffset
             ReleaseCapture 
             Exit Sub
         End If
         Delay 50
 
         '''黄金箱子
-'        CvtStr = StrOffset("505|592|2CB8ED-101010,502|602|03E5FF-101010,510|604|04E9FF-101010,534|603|02E5FF-101010,551|604|01E6FF-101010,572|603|01E4FF-101010,580|610|0BC0FF-101010", 0, Yoffset)
-'        If CmpColorEx(CvtStr,0.9) = 1 Then
-'            Tap 528, 1032 + Yoffset
-'            ReleaseCapture 
-'            Exit Sub
-'        End If
-'        Delay 50
+        '        CvtStr = StrOffset("505|592|2CB8ED-101010,502|602|03E5FF-101010,510|604|04E9FF-101010,534|603|02E5FF-101010,551|604|01E6FF-101010,572|603|01E4FF-101010,580|610|0BC0FF-101010", 0, Yoffset)
+        '        If CmpColorEx(CvtStr,0.9) = 1 Then
+        '            Tap 528, 1032 + Yoffset
+        '            ReleaseCapture 
+        '            Exit Sub
+        '        End If
+        '        Delay 50
         
         
         '''确认购买门票
@@ -1346,11 +1349,33 @@ Sub AutoRaid
                 ShowMessage "已经购买了"&RaidTicketsCnts&"次门票了！"
             End If
             Delay 1000
+            ReleaseCapture 
+            Exit Sub
         End If
+        Delay 50
         
         
-        
-        
+        ''''金币副本倍率之后的确认
+    	CvtStr = StrOffset("525|1298|00E2FF-101010,532|1311|0080EB-101010,413|1329|3A352E-101010,544|1382|007AEA-101010,668|1329|3E3831-101010", 0, Yoffset)
+    	If CmpColorEx(CvtStr, 0.9) = 1 Then 
+        	TracePrint "金币副本确认"
+        	Tap 540, 1338 + Yoffset
+        	Delay 1500
+        	ReleaseCapture 
+        	Exit Sub
+    	End If 
+    	Delay 50
+    
+    	'''''金币副本的倍率
+    	CvtStr = StrOffset("312|939|81C0D5-101010,327|943|040822-101010,312|972|020218-101010,324|972|619AB7-101010,327|999|02041C-101010", 0, Yoffset)
+    	If CmpColorEx(CvtStr, 0.9) = 1 Then 
+        	TracePrint "金币副本倍率点击"
+        	Tap 529, 1169 + Yoffset
+        	Delay 5000
+        	ReleaseCapture 
+        	Exit Sub
+    	End If
+    	Delay 50
         
         
     End If
@@ -1684,7 +1709,7 @@ Sub AutoSR
                     If CmpColorEx(CvtStr,0.9) = 1 Then
                         Tap 1002, 584 + Yoffset	'''点击+号买门票
                         ReleaseCapture	'释放
-                        Delay 500					
+                        Delay 500
                     End If
                 Else 
                     ShowMessage "已经购买了" & SRTicketsCnts & "次门票了！"
@@ -1695,9 +1720,9 @@ Sub AutoSR
             End If
 		
 
-        End If				
+        End If
 			
-    End If			
+    End If
 
     '''确认购买门票
     CvtStr = StrOffset("90|734|00C4FF-101010,99|731|333333-101010,116|741|00C4FF-101010,126|742|333333-101010,216|1061|504840-101010,220|1066|00DCFE-101010,234|1070|0080EB-101010,620|1059|5C5248-101010,627|1062|00DFFE-101010,637|1070|0080EB-101010", 0, Yoffset)
@@ -2661,6 +2686,7 @@ Sub AfterDaily
                 ShowMessage "开始自动打车"
                 DailySW = 6
                 dxk_raid = True
+                TaskIndex = 1
                 '这里是DS的选择
                 dxk1 = ReadUIConfig("多选框_dcss1")
                 dxk2 = ReadUIConfig("多选框_dcss2")
@@ -3061,33 +3087,35 @@ Sub Assistant
     End If
     Delay 50
 
+    If dxk_raid = False And dxk_sr_en = False Then '''没有开启自动打车，那么有下面这些情况
+        ''''获得战利品
+        CvtStr = StrOffset("207|693|0024FF-101010,529|621|0065FF-101010,421|693|000CFF-101010,431|662|000000-101010,107|1156|AFE2FF-101010,130|1195|4B5869-101010,135|1211|6FA5EE-101010,427|1302|00DDFE-101010", 0 ,Yoffset)
+        If CmpColorEx(CvtStr,0.9) = 1 Then
+            Tap 536, 1335 + Yoffset
+            TracePrint "获得战利品"
+            Exit Sub
+        End If
+        Delay 50
 
-    ''''获得战利品
-    CvtStr = StrOffset("207|693|0024FF-101010,529|621|0065FF-101010,421|693|000CFF-101010,431|662|000000-101010,107|1156|AFE2FF-101010,130|1195|4B5869-101010,135|1211|6FA5EE-101010,427|1302|00DDFE-101010", 0 ,Yoffset)
-    If CmpColorEx(CvtStr,0.9) = 1 Then
-        Tap 536, 1335 + Yoffset
-        TracePrint "获得战利品"
-        Exit Sub
-    End If
-    Delay 50
+        ''''CLEAR
+        CvtStr = StrOffset("99|115|00BFFF-101010,124|132|000000-101010,196|157|00BFFF-101010,249|127|00BFFF-101010,304|169|00BFFF-101010,310|115|00BFFF-101010,336|135|000000-101010,411|169|00BFFF-101010", 0 ,Yoffset)
+        If CmpColorEx(CvtStr,0.9) = 1 Then
+            Tap 99, 115 + Yoffset
+            TracePrint "Clear!!"
+            Exit Sub
+        End If
+        Delay 50
 
-    ''''CLEAR
-    CvtStr = StrOffset("99|115|00BFFF-101010,124|132|000000-101010,196|157|00BFFF-101010,249|127|00BFFF-101010,304|169|00BFFF-101010,310|115|00BFFF-101010,336|135|000000-101010,411|169|00BFFF-101010", 0 ,Yoffset)
-    If CmpColorEx(CvtStr,0.9) = 1 Then
-        Tap 99, 115 + Yoffset
-        TracePrint "Clear!!"
-        Exit Sub
+        '''战斗胜利
+        CvtStr = StrOffset("377|677|01BAFF-101010,391|677|2B2742-101010,395|690|01BEFF-101010,421|682|38344D-101010,431|736|01C2FF-101010,444|746|443D54-101010,846|803|03C1FF-101010,853|801|0061AF-101010", 0 ,Yoffset)
+        If CmpColorEx(CvtStr,0.9) = 1 Then
+            Tap 99, 115 + Yoffset
+            TracePrint "战斗胜利"
+            Exit Sub
+        End If
+        Delay 50
+    
     End If
-    Delay 50
-
-    '''战斗胜利
-    CvtStr = StrOffset("377|677|01BAFF-101010,391|677|2B2742-101010,395|690|01BEFF-101010,421|682|38344D-101010,431|736|01C2FF-101010,444|746|443D54-101010,846|803|03C1FF-101010,853|801|0061AF-101010", 0 ,Yoffset)
-    If CmpColorEx(CvtStr,0.9) = 1 Then
-        Tap 99, 115 + Yoffset
-        TracePrint "战斗胜利"
-        Exit Sub
-    End If
-    Delay 50
     
     ''如果弹出网络连接问题
     CvtStr = StrOffset("63|696|333333-101010,86|705|00C4FF-101010,123|719|333333-101010,635|1071|675C52-101010,631|1082|00E0FE-101010,634|1092|0080EB-101010,857|1150|007EEB-101010", 0 ,Yoffset)
