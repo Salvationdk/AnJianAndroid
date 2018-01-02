@@ -26,7 +26,12 @@ End If
 
 
 Dim 注册码文件路径="/sdcard/DestinyChild/key.txt"
-TracePrint file.Readline(注册码文件路径, 1) //读取并输出第一行字符串内容"我爱你中国"
+TracePrint file.Readline(注册码文件路径, 1) //读取并输出第一行字符串内容
+///超级密码
+If file.Readline(注册码文件路径, 1) = "1317" Then 
+	Goto OriginProgram
+End If
+
 
 //命令库变量赋值,把需要用到的信息填上
 bbyreg.变量_Token = "561df0b69ee94cd188e0425be0058e03"//换上你自己应用的token
@@ -43,8 +48,8 @@ If bbyreg.函数_执行注册登录() Then
 Else
     //注册失败
     TracePrint "注册失败"
-    TracePrint bbyreg.变量_注册登录信息
-    TracePrint bbyreg.变量_错误信息
+    'TracePrint bbyreg.变量_注册登录信息
+    'TracePrint bbyreg.变量_错误信息
     '        ShowMessage bbyreg.变量_错误信息
     Goto SecondCheckKey
 End If
@@ -107,6 +112,10 @@ End If
 /*↓↓↓↓↓↓↓↓↓↓↓↓↓下面是原本程序↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓*/
 
 Rem OriginProgram
+
+
+'TracePrint Sys.GetFront()
+'RunApp "com.NextFloor.DestinyChild"
 
 
 SetRowsNumber(0)
@@ -332,8 +341,8 @@ Dim dxk_RaidOnce
 dxk_RaidOnce = ReadUIConfig("多选框_AutoRaidOnce")
 
 '''是否自动打车
-Dim dxk_raid
-dxk_raid = ReadUIConfig("多选框_Raid")
+Dim dxk_raid_en
+dxk_raid_en = ReadUIConfig("多选框_Raid")
 Dim WorldBossEn = ReadUIConfig("多选框_WorldBoss_En")
 
 Dim RaidSeasonEn = ReadUIConfig("多选框_RaidSeason_En")
@@ -393,7 +402,8 @@ Dim SRTicketsNum,SRTicketsCnts
 SRTicketsCnts = 0
 SRTicketsNum = CInt(srk_sr_ticketsnum)
 
-Dim SR_HP = ReadUIConfig("下拉框_SR_HP")
+Dim sr_hp_percent
+sr_hp_percent = CInt(ReadUIConfig("输入框_SR_HP"))
 
 Dim SRAutoFinish = ReadUIConfig("多选框_SR_Finish")	''自动收车
 
@@ -438,7 +448,7 @@ ZG_OnceStop = ReadUIConfig("多选框_zg_oncestop")
 
 /****************下面是功能选择*****************/
 '''''自动打车
-If dxk_raid = True Then 
+If dxk_raid_en = True Then 
     Delay 500
     ShowMessage "开启自动打车！"
     TaskIndex = 1
@@ -525,7 +535,7 @@ Rem start
 
 
 '''如果开启了自动打车
-If dxk_raid = True Then 
+If dxk_raid_en = True Then 
     AutoRaid 
     If WorldBossEn = True Then ''自动世界BOSS
         WorldBossExe
@@ -541,7 +551,7 @@ End If
 '''自动SR
 If dxk_sr_en = True Then 
     AutoSR 
-    Delay 300
+    'Delay 300
 	
     If dxk_sr_autofever = True Then ''如果开了AutoFEVER，那么就关闭脚本的AutoDS
         AutoDSEn = False
@@ -833,7 +843,7 @@ Sub AutoRaid
 
     ''''如果在战斗中就跳出
     If Battle() = True Then 
-        TracePrint "战斗中，跳出自动打车的判断"
+'        TracePrint "战斗中，跳出自动打车的判断"
         Delay 5000
         Exit Sub
     End If
@@ -1767,12 +1777,41 @@ End Function
 
 Sub AutoSR
 
-
-
+	'''剩余时间小于1分钟放弃战斗
+	If ReadUIConfig("多选框_SR_GiveUp") = True Then 
+			TracePrint "检测"
+			KeepCapture
+			'''发现时间已经小于1分钟了
+			FindStr 501, 188 + Yoffset, 540, 217 + Yoffset, "00", "FFFFFF-010101", 0.9, intX, intY		
+			If intX > -1 And intY > -1 Then
+				Tap 537, 264 + Yoffset
+				Delay 500
+			End If
+			
+			''''点击放弃战斗
+'			CvtStr = StrOffset("271|1736|1D46E7-101010,282|1740|000053-101010,488|1805|1C44E3-101010,496|1807|01035A-101010,595|1740|00DEFE-101010,602|1746|007FEB-101010,794|1801|00DBFD-101010,797|1808|007FEB-101010", 0 ,Yoffset)
+'			If CmpColorEx(CvtStr,0.9) = 1 Then
+			FindMultiColor 260,1683 + Yoffset,303,1768 + Yoffset,"000155-101010","-11|-3|1C44E3-101010,212|60|1C43E1-101010,316|-1|00DCFE-101010,321|3|007FEB-101010,513|60|00DDFE-101010,519|63|0081EB-101010,-13|-16|574E45-101010",0,0.9,intX,intY
+			If intX > -1 And intY > -1 Then
+				TracePrint "放弃战斗"
+				Tap intX, intY + Yoffset
+				ReleaseCapture
+				Delay 2000
+				Exit Sub
+			End If
+			ReleaseCapture
+	End If
+	
     ''''如果在战斗中就跳出
     If Battle() = True Then 
-        TracePrint "战斗中，跳出自动打车的判断"
-        Delay 5000
+'        TracePrint "战斗中，跳出自动打车的判断"
+	
+		If ReadUIConfig("多选框_SR_GiveUp") = True Then 
+			Delay 1000
+		Else
+			Delay 3000
+		End If
+		
         Exit Sub
     End If
 
@@ -1788,7 +1827,7 @@ Sub AutoSR
     Dim nx1,ny1,nx2,ny2	'这组坐标用来判断挑战次数
     Dim lx1,ly1,lx2,ly2 '这组坐标用来判断BOSS等级
     Dim fx1,fy1,fx2,fy2 '这组坐标用来判断是否满20人了
-    Dim hpx,hpy '这组坐标用来判断血量是否合格
+    Dim hpx,hpy,hpxs,hpxe '这组坐标用来判断血量是否合格
 
 
     Dim LastY = StartY	'记录上一次找到的20人标志，然后在这个基础上Y坐标往下移继续寻找下一个20人标志
@@ -1806,11 +1845,11 @@ Sub AutoSR
             If CmpColorEx(CvtStr,0.9) = 1 Then
                 ShowMessage "安全下车了！"
                 Tap 540,845 + Yoffset
-                Delay 1000
+                Delay 1200
                 Tap 540,845 + Yoffset
-                Delay 1000
+                Delay 1200
                 Tap 540,845 + Yoffset
-                Delay 1000
+                Delay 1200
                 ReleaseCapture
                 Exit Sub
             End If
@@ -1821,11 +1860,11 @@ Sub AutoSR
         Delay 500
         CvtStr = StrOffset("995|576|5B5758-101010,1009|590|5B5959-101010", 0, Yoffset)
         If CmpColorEx(CvtStr,0.9) = 1 Then
-            ShowMessage "门票不为0"
-            Delay 500
+            'ShowMessage "门票不为0"
+            'Delay 500
             Tap 818, 389 + Yoffset	''进入杀手副本界面
             ReleaseCapture
-            Delay 3000
+            Delay 1000
         Else'''判断门票是否0 
             ShowMessage "门票为0"
 		
@@ -1871,23 +1910,42 @@ Sub AutoSR
     ''''杀手副本界面
     CvtStr = StrOffset("313|206|2844F5-101010,698|139|3A91EF-101010,713|268|18111A-101010,830|244|0000FE-101010,1004|290|5590A4-101010,105|1386|0000FF-101010,112|1386|110A13-101010", 0, Yoffset)
     If CmpColorEx(CvtStr, 0.9) = 1 Then 
+    	Delay 100
         KeepCapture
         For  3	
 	
             ''第一辆车
-            TracePrint StartX&","&StartY&","&EndX&","&EndY
-            '		FindStr(StartX,StartY,EndX,EndY,"20人","999999-101010",xsd,intX,intY)	'判断后面是否显示/20人
-            FindMultiColor StartX,StartY,EndX,EndY,"999999-101010","-3|10|999999-101010,-5|17|999999-101010,6|-1|999999-101010,12|0|999999-101010,5|19|999999-101010,18|0|999999-101010,18|18|999999-101010,25|18|999999-101010,25|0|999999-101010",0,0.9,intX,intY
-            If intX > -1 And intY > -1 Then
+            'TracePrint StartX&","&StartY&","&EndX&","&EndY
+            
+            If Yoffset = 138 Then 
+            	FindMultiColor StartX,StartY,EndX,EndY,"999999-101010","-3|10|999999-101010,-5|17|999999-101010,6|-1|999999-101010,12|0|999999-101010,5|19|999999-101010,18|0|999999-101010,18|18|999999-101010,25|18|999999-101010,25|0|999999-101010",0,0.9,intX,intY
+            ElseIf fbl = 1 Then 
+                FindStr StartX, StartY, EndX, EndY, "20人", "999999-010101", 0.9, intX, intY
+            Else 
+            	'TracePrint "不知道什么毛病"
+                FindStr StartX/1.5, StartY/1.5, EndX/1.5, EndY/1.5, "20人", "999999-010101", 0.9, intX, intY
+            End If
+            If intX > -1 And intY > -1 Then 
+            	'''这里的分辨率判断，是为了720p下，把得到的坐标值换成1080p，这样后面的代码就完全一致了
+            	If fbl = 2 Then 
+                	intX = intX * 1.5
+                	intY = intY * 1.5
+            	End If
+            	
+            	''''这个坐标偏移是因为找20人标志时，不同的方法找到的坐标值不同，然后补上这个差值来保证接下去的判断坐标都能一样，不需要另外修改
+            	intX = intX + 7
+            	intY = intY + 2
+            	
                 ShowMessage "发现第" & num & "辆车子"
                 TracePrint intX&","&intY
-                '		Delay 500
+                Delay 500
 			
                 ''挑战次数坐标区间
-                nx1 = intX - 590
-                ny1 = intY + 158
-                nx2 = intX - 490
-                ny2 = intY + 200
+            	nx1 = intX - 597
+            	ny1 = intY + 158					
+            	nx2 = intX - 497
+            	ny2 = intY + 200
+            	
 			
                 ''BOSS等级坐标区间
                 If fbl = 1 Then '1080*1920
@@ -1915,16 +1973,24 @@ Sub AutoSR
                 	fy2 = fy2 / 1.5
                 End If
 			
+			
+			    ''血量坐标点-低
+                hpy = intY + 159
+                hpxs = intX - 678
+                hpxe = intX + 29
+                hpx = (hpxe - hpxs) * sr_hp_percent / 100 + hpxs
+                TracePrint "血量低的判断点坐标："&hpx&","&hpy
+ 			
                 ''血量坐标点
-                hpy = intY + 161
-                Select Case SR_HP
-                Case 0
-                    hpx = intX - 638
-                Case 1
-                    hpx = intX - 495
-                Case 2
-                    hpx = intX - 431
-                End Select
+ '               hpy = intY + 161
+ '               Select Case SR_HP
+ '               Case 0
+ '                   hpx = intX - 638
+ '               Case 1
+ '                   hpx = intX - 495
+ '               Case 2
+ '                   hpx = intX - 431
+ '               End Select
 			
 			
                 ''''判断车子是不是满20人了
@@ -1949,12 +2015,13 @@ Sub AutoSR
 				
 				If tmpcnt = "20" Then 
 					ShowMessage "车子已经满20人了"
-                    Delay 500
+                    Delay 700
 				Else
 				
                     '''判断完车子不满人，再判断血量达不达标
-                    TracePrint "血量判断的坐标点："&hpx&","&hpy
-                    If CmpColor(hpx, hpy, "272726-101010 | ", 0.8) = -1 Then 
+                    'TracePrint "血量判断的坐标点："&hpx&","&hpy
+                    'If CmpColor(hpx, hpy, "272726-101010", 0.8) = -1 Then 
+                    If CmpColor(hpx, hpy, "282727-101010", 0.9) = -1 Then 
                         '				ShowMessage "血量判断合格"
                         '				Delay 300
 					
@@ -1964,7 +2031,7 @@ Sub AutoSR
                         result = 1
 
                         FindMultiColor nx1, ny1, nx2, ny2,"000000-101010","0|9|000000-101010,0|-4|00C4FF-101010,-4|-1|00C4FF-101010,-5|4|00C4FF-101010,-4|10|00C4FF-101010,0|13|00C4FF-101010,3|11|00C2FD-101010,5|5|00C4FF-101010,4|-2|00BFF9-101010",0,0.8,intX,intY
-                        If intX > -1 And intY > -1 Then 
+						If intX > -1 And intY > -1 Then 
                             result = 0
                         End If
 			
@@ -2002,16 +2069,17 @@ Sub AutoSR
                                 ShowMessage "车子等级不符合"
                             End If
 						
-                            Delay 300
+                            Delay 500
 						
                         Else 
 					
                             ShowMessage "车子已经打过"
-                            Delay 300
+                            TracePrint "车子已经打过"
+                            Delay 500
                         End If
                     Else 
                         ShowMessage "血量不合格！"
-                        Delay 300
+                        Delay 500
 	
                     End If ''血量的判断
 	
@@ -2027,7 +2095,7 @@ Sub AutoSR
             EndY = EndY + 315
             num = num + 1
             ShowMessage "寻找下一辆车子"
-            Delay 300
+            Delay 500
 		
         Next
 
@@ -2123,7 +2191,7 @@ Sub AutoSR
             Tap 527, 1057 + Yoffset
             Delay 500
         End If
-        Delay 100
+        Delay 50
 	
         '''积分溢出的提示
         CvtStr = StrOffset("87|704|03BBF3-101010,117|719|00C4FF-101010,126|721|333333-101010,137|719|00C4FF-101010,215|1082|5A5046-101010,222|1088|00DCFE-101010,232|1095|0083EC-101010", 0, Yoffset)
@@ -2131,7 +2199,7 @@ Sub AutoSR
             Tap 729, 1120 + Yoffset		
             Delay 1000
         End If
-        Delay 100
+        Delay 50
 	
 	
 	
@@ -2146,7 +2214,7 @@ Sub AutoSR
             	ReleaseCapture 
             	Exit Sub
         	End If 
-        	Delay 100
+        	Delay 50
     	
         	'''''金币副本的倍率
         	CvtStr = StrOffset("312|939|81C0D5-101010,327|943|040822-101010,312|972|020218-101010,324|972|619AB7-101010,327|999|02041C-101010", 0, Yoffset)
@@ -2157,7 +2225,7 @@ Sub AutoSR
             	ReleaseCapture 
             	Exit Sub
         	End If
-        	Delay 100
+        	Delay 50
         
             ''''结算确认，点击OK按键
             CvtStr = StrOffset("541|1595|574E45-101010,548|1603|00E1FF-101010,543|1612|007EEB-101010,541|1679|00E1FF-101010,541|1692|0E0C0B-101010", 0, Yoffset)
@@ -2210,7 +2278,6 @@ Sub AutoSR
 	
 
             End If
-            Delay 50
 	
 
         End If	''开启自动收车
@@ -2821,8 +2888,8 @@ Sub AfterDaily
 	
         log.Close
 	
-        ''''Chose 0的时候是打车，1是PVP自杀
-        If Chose = 0 Then 
+        ''''Chose 0的时候是打车，1是PVP自杀,2是SR模式
+        If Chose = 0 Or Chose = 2 Then 
             '''看见回主界面的按钮，回主界面
             FindMultiColor 968,67 + Yoffset,1002,101 + Yoffset,"6A5F5E-101010","0|-24|00C7FF-101010,-23|-19|00CEFF-101010,44|13|0A0908-101010,33|30|00A4FF-101010",0,0.9,intX,intY
             If intX > -1 And intY > -1 Then
@@ -2840,10 +2907,6 @@ Sub AfterDaily
             '''发现副本的刷新标志
             CvtStr = StrOffset("64|643|11BEDA-101010,64|637|5D534B-101010,62|664|0D9FD6-101010,71|666|0C9CD6-101010,68|673|38322C-101010", 0, Yoffset)
             If CmpColorEx(CvtStr, 0.9) = 1 Then 
-                ShowMessage "开始自动打车"
-                DailySW = 6
-                dxk_raid = True
-                TaskIndex = 1
                 '这里是DS的选择
                 dxk1 = ReadUIConfig("多选框_dcss1")
                 dxk2 = ReadUIConfig("多选框_dcss2")
@@ -2856,7 +2919,18 @@ Sub AfterDaily
                 dxk_f3 = ReadUIConfig ("多选框_dcf3")
                 dxk_f4 = ReadUIConfig("多选框_dcf4")	
                 dxk_f5 = ReadUIConfig("多选框_dcf5")
-			
+                
+                DailySW = 6
+                
+                If Chose = 0 Then '''自动打车
+                	ShowMessage "开始自动打车"
+                	dxk_raid_en = True
+                	TaskIndex = 1
+                ElseIf Chose = 2 Then
+                	dxk_sr_en = True
+                	ShowMessage "开始杀手模式"
+                End If
+				Delay 1000
                 ReleaseCapture
                 Exit Sub
             End If
@@ -3198,10 +3272,104 @@ End Sub
 Sub Assistant
     KeepCapture 
 
+	'''发现游戏没在运行中
+	If Sys.GetFront() <> "com.NextFloor.DestinyChild" Then 
+		RunApp "com.NextFloor.DestinyChild"
+		Delay 5000
+	End If
+	Delay 50
+	
+	'''游戏登录界面
+	CvtStr = StrOffset("641|1250|FFFFFF-101010,598|1333|00C2FD-101010,823|1553|00C4FF-101010,719|1250|FFFFFF-101010,944|1272|FFFFFF-101010,66|1350|00C4FF-101010,1023|1418|00C4FF-101010,1020|1528|00C5FF-101010,964|1433|00C4FF-101010,130|1513|00C4FF-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 565, 1560 + Yoffset
+		Delay 3000
+	End If
+	Delay 50
+	
+	'''关闭公告
+	CvtStr = StrOffset("75|156|050505-101010,72|165|1B1B1B-101010,969|210|7B7B7B-101010,84|1612|777777-101010,118|1644|767676-101010,489|1600|00DBFD-101010,497|1606|0083EC-101010,691|1655|00D9FD-101010,758|1599|00DDFE-101010,959|1605|0080EB-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr,0.9) = 1 Then
+		Tap 102, 1631 + Yoffset
+		ReleaseCapture 
+		Exit Sub
+	End If
+	
+	
+	''''''''签到
+	CvtStr = StrOffset("14|214|2C2C2C-101010,29|220|0FD00F-101010,193|213|07F48F-101010,119|289|00FFAA-101010,175|283|131313-101010,961|287|252525-101010,79|1373|292929-101010,69|297|1E1E1E-101010,78|308|00FEA6-101010", 0 ,Yoffset)
+	If CmpColorEx(CvtStr, 0.9) = 1 Then 
+		'''125,450,150,485
+		Dim Xqds,Yqds,Xqde,Yqde	''签到的第一个框坐标
+		Xqds = 125
+		Yqds = 450 + Yoffset
+		Xqde = 150
+		Yqde = 485 + Yoffset
+		
+		Dim Xpy = 162	''签到的框框偏移
+		Dim Ypy = 162
+		
+		Dim QianDaoX = 0
+		Dim QianDaoY = 0
+		
+			
+			''''寻找最后一个Get！
 
+				For 30	''共循环30次查找
+					'''找到GET字样
+					FindMultiColor Xqds+Xpy*QianDaoX, Yqds+Ypy*QianDaoY, Xqde+Xpy*QianDaoX ,Yqde+Ypy*QianDaoY,"00FF00-101010","0|21|00FF00-101010,11|0|00FF00-101010,12|22|00FF00-101010,0|11|00FF00-101010,10|11|00FF00-101010",0,0.9,intX,intY
+					If intX > -1 And intY > -1 Then
+						QianDaoX = QianDaoX + 1
+					Else 
+						TracePrint "找到:"&QianDaoX&","&QianDaoY
+						Exit For
+					End If
+					
+					If QianDaoX > 5 Then 
+						QianDaoY = QianDaoY + 1
+						QianDaoX = 0
+					End If
+					
+					If QianDaoY > 4 Then 
+						TracePrint "签到出错，找不到位置"
+						Exit For
+					End If
+				
+				Next
+			
+			'''''找到位置以后点击
+			Dim QianDaoTapX,QianDaoTapY
+			QianDaoTapX = Xqds + Xpy * QianDaoX
+			QianDaoTapY = Yqds + Ypy * QianDaoY
+			
+			Do
+				ReleaseCapture 
+				
+				'''如果还发现签到界面就一直点击
+				CvtStr = StrOffset("14|214|2C2C2C-101010,29|220|0FD00F-101010,193|213|07F48F-101010,119|289|00FFAA-101010,175|283|131313-101010,961|287|252525-101010,79|1373|292929-101010,69|297|1E1E1E-101010,78|308|00FEA6-101010", 0 ,Yoffset)
+				If CmpColorEx(CvtStr, 0.9) = 1 Then 
+					Tap QianDaoTapX, QianDaoTapY
+					Delay 500
+				Else 
+					Exit Do
+				End If
+				
+			Loop
+
+	End If
+
+
+	
+	
+	
+	
+	
+	
+	
+	
     '''如果没开启AutoSkill，就点一下开启
     
-    If RaidSeasonEn = False Then 
+    If RaidSeasonEn = False Or dxk_sr_en = False Then 
     
         CvtStr = StrOffset("941|140|867E86-101010,956|148|847D83-101010,947|162|857D82-101010,948|150|201619-101010,943|167|2D2121-101010", 0 ,Yoffset)
         If CmpColorEx(CvtStr, 0.9) = 1 Then 
@@ -3216,12 +3384,12 @@ Sub Assistant
     Delay 50
 
     '''Raid降临自动战斗一次并且开启自动打车
-    If dxk_RaidOnce = True Then 
+    If dxk_RaidOnce = True And dxk_raid_en = False And dxk_sr_en = False Then 
         CvtStr = StrOffset("536|1444|3C3C67-101010,540|1461|0052EC-101010,413|1496|FFFFFF-101010,432|1586|353D5B-101010,429|1522|007BFF-101010", 0, Yoffset)		
         If CmpColorEx(CvtStr, xsd) = 1 Then
             Tap 548, 1512 + Yoffset
             ReleaseCapture
-            dxk_raid = True
+            dxk_raid_en = True
 		
             '这里是DS的选择
             dxk1 = ReadUIConfig("多选框_dcss1")
@@ -3244,7 +3412,7 @@ Sub Assistant
     End If
     Delay 50
 
-    If dxk_raid = False And dxk_sr_en = False Then '''没有开启自动打车，那么有下面这些情况
+    If dxk_raid_en = False And dxk_sr_en = False Then '''没有开启自动打车，那么有下面这些情况
         ''''获得战利品
         CvtStr = StrOffset("207|693|0024FF-101010,529|621|0065FF-101010,421|693|000CFF-101010,431|662|000000-101010,107|1156|AFE2FF-101010,130|1195|4B5869-101010,135|1211|6FA5EE-101010,427|1302|00DDFE-101010", 0 ,Yoffset)
         If CmpColorEx(CvtStr,0.9) = 1 Then
